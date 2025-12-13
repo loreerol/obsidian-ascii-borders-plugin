@@ -1,6 +1,7 @@
 
 import { App, Notice, PluginSettingTab, Setting } from 'obsidian';
 import type AsciiBorders from '../main';
+import { BorderStyle } from 'types';
 
 export class SettingsTab extends PluginSettingTab {
 	plugin: AsciiBorders;
@@ -24,7 +25,11 @@ export class SettingsTab extends PluginSettingTab {
 	}
 
 	private renderBorderSettings(container: HTMLElement, key: string, border: any): void {
-		this.addBorderName(container, key)
+		const borderContainer = container.createDiv({ cls: 'border-setting-container' });
+		borderContainer.createEl('h3', { text: `border-${key}` });
+
+		this.addBorderName(container, key);
+		this.updateBorderStyle(container, border);
 	};
 
 	private addBorderName(container: HTMLElement, key: string): void {
@@ -53,5 +58,44 @@ export class SettingsTab extends PluginSettingTab {
 
 		await this.plugin.saveSettings();
 		this.display();
+	}
+
+	private updateBorderStyle(container: HTMLElement, border: BorderStyle): void {
+		const update = async (part: keyof BorderStyle, value: string) => {
+			border[part] = value;
+			await this.plugin.saveData(this.plugin.settings);
+		}
+
+		new Setting(container)
+			.setName('Top border')
+			.addText(text => text.setValue(border.top).onChange(value => update('top', value)));
+
+		new Setting(container)
+			.setName('Bottom border')
+			.addText(text => text.setValue(border.bottom).onChange(value => update('bottom', value)));
+
+		new Setting(container)
+			.setName('Left border')
+			.addText(text => text.setValue(border.left).onChange(value => update('left', value)));
+
+		new Setting(container)
+			.setName('Right border')
+			.addText(text => text.setValue(border.right).onChange(value => update('right', value)));
+
+		new Setting(container)
+			.setName('Top Left corner')
+			.addText(text => text.setValue(border.topLeft).onChange(value => update('topLeft', value)));
+
+		new Setting(container)
+			.setName('Top Right corner')
+			.addText(text => text.setValue(border.topRight).onChange(value => update('topRight', value)));
+
+		new Setting(container)
+			.setName('Bottom Left corner')
+			.addText(text => text.setValue(border.bottomLeft).onChange(value => update('bottomLeft', value)));
+
+		new Setting(container)
+			.setName('Bottom Right corner')
+			.addText(text => text.setValue(border.bottomRight).onChange(value => update('bottomRight', value)));	
 	}
 }
