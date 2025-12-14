@@ -1,22 +1,28 @@
 import { Plugin } from 'obsidian';
-import { SettingsTab } from './settings/SettingsTab';
-import { DEFAULT_SETTINGS } from './settings/defaultBorders';
-import { AsciiBordersSettings } from './types';
+import { SettingsTab } from './src/SettingsTab';
+import { DEFAULT_SETTINGS } from './src/settings';
+import { AsciiBordersSettings } from './src/utils/types';
+import { renderBorder } from 'src/renderer';
 
 export default class AsciiBorders extends Plugin {
 	settings: AsciiBordersSettings;
 
 	async onload() {
-		await this.loadSettings();
+		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+		
+		// Resister all border code block processors
+		Object.keys(this.settings.borders).forEach((borderName) => {
+			this.registerMarkdownCodeBlockProcessor(`border-${borderName}`, (source, el) => {
+				renderBorder(source, el, this.settings.borders[borderName]);
+			});
+		});
 
 		this.addSettingTab(new SettingsTab(this.app, this));
+	}
 
-	}
-	async loadSettings() {
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
-	}
+	onunload() {}
 
 	async saveSettings() {
 		await this.saveData(this.settings);
-	}
+	}	
 }

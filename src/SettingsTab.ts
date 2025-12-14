@@ -1,7 +1,7 @@
 
 import { App, Notice, PluginSettingTab, Setting } from 'obsidian';
 import type AsciiBorders from '../main';
-import { BorderStyle } from 'types';
+import { BorderStyle } from 'src/utils/types';
 
 export class SettingsTab extends PluginSettingTab {
 	plugin: AsciiBorders;
