@@ -1,19 +1,6 @@
-export interface BorderStyle {
-	top: string;
-	bottom: string;
-	left: string;
-	right: string;
-	topLeft: string;
-	topRight: string;
-	bottomLeft: string;
-	bottomRight: string;
-}
+import { BorderStyle, BorderConfig, AsciiBordersSettings } from "./utils/types";
 
-export interface BorderPluginSettings {
-	borders: Record<string, BorderStyle>;
-}
-
-export const DEFAULT_BORDERS: Record<string, BorderStyle> = {
+export const DEFAULT_BORDER_STYLES: Record<string, BorderStyle> = {
 	heart: {
 		top: "══ஓ๑♡๑ஓ══",
 		bottom: "══ஓ๑♡๑ஓ══",
@@ -76,6 +63,13 @@ export const DEFAULT_BORDERS: Record<string, BorderStyle> = {
 	},
 };
 
-export const DEFAULT_SETTINGS: BorderPluginSettings = {
-	borders: { ...DEFAULT_BORDERS },
+export const DEFAULT_SETTINGS: AsciiBordersSettings = {
+	borders: {
+		heart: { style: DEFAULT_BORDER_STYLES.heart, centerText: false },
+		star: { style: DEFAULT_BORDER_STYLES.star, centerText: false },
+		simple: { style: DEFAULT_BORDER_STYLES.simple, centerText: false },
+		double: { style: DEFAULT_BORDER_STYLES.double, centerText: false },
+		single: { style: DEFAULT_BORDER_STYLES.single, centerText: false },
+		rounded: { style: DEFAULT_BORDER_STYLES.rounded, centerText: false },
+	},
 };

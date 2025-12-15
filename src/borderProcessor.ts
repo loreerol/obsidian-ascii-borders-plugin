@@ -1,4 +1,4 @@
-import { BorderStyle } from './settings';
+import { BorderStyle } from './utils/types';
 import { CONTENT_PADDING } from './utils/constrants';
 
 // Center a pattern by filling left with first char and right with last char
@@ -26,16 +26,23 @@ function centerPattern(
 function wrapTextWithSides(
     lines: string[],
     width: number,
-    border: BorderStyle
+    border: BorderStyle,
+    centerText: boolean
 ): string[] {
     return lines.map(line => {
-        // Center the text with space padding
-        const leftPad = Math.floor((width - line.length) / 2);
-        const rightPad = width - line.length - leftPad;
         const spaces = ' '.repeat(CONTENT_PADDING);
-
-        // Build: left border | padding | centered text | padding | right border
-        return `${border.left}${spaces}${' '.repeat(leftPad)}${line}${' '.repeat(rightPad)}${spaces}${border.right}`;
+        
+        if (centerText) {
+            // Center the text with space padding
+            const leftPad = Math.floor((width - line.length) / 2);
+            const rightPad = width - line.length - leftPad;
+            
+            return `${border.left}${spaces}${' '.repeat(leftPad)}${line}${' '.repeat(rightPad)}${spaces}${border.right}`;
+        } else {
+            // Left-align the text
+            const rightPad = width - line.length;
+            return `${border.left}${spaces}${line}${' '.repeat(rightPad)}${spaces}${border.right}`;
+        }
     });
 }
 
@@ -43,7 +50,8 @@ export function createBorder(
     text: string,
     border: BorderStyle,
     measureWidth: (text: string) => number,
-    targetWidth = 0
+    targetWidth = 0,
+    centerText = false
 ): string {
     // Determine content width
     const lines = text.split('\n');
@@ -59,5 +67,5 @@ export function createBorder(
     const bottomBorder = border.bottomLeft + centerPattern(border.bottom, contentWidthPx, measureWidth) + border.bottomRight;
 
     // Combine all parts
-    return [topBorder, ...wrapTextWithSides(lines, width, border), bottomBorder].join('\n');
+    return [topBorder, ...wrapTextWithSides(lines, width, border, centerText), bottomBorder].join('\n');
 }

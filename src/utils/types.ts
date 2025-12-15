@@ -9,6 +9,11 @@ export interface BorderStyle {
 	bottomRight: string;
 }
 
+export interface BorderConfig {
+	style: BorderStyle;
+	centerText: boolean;
+}
+
 export interface AsciiBordersSettings {
-	borders: Record<string, BorderStyle>;
+	borders: Record<string, BorderConfig>;
 }

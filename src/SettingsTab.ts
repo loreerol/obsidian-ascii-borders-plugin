@@ -1,7 +1,6 @@
-
 import { App, Notice, PluginSettingTab, Setting } from 'obsidian';
 import type AsciiBorders from '../main';
-import { BorderStyle } from 'src/utils/types';
+import { BorderConfig } from './utils/types';
 
 export class SettingsTab extends PluginSettingTab {
 	plugin: AsciiBorders;
@@ -13,33 +12,31 @@ export class SettingsTab extends PluginSettingTab {
 
 	display(): void {
 		const { containerEl } = this;
-
 		containerEl.empty();
-
 		containerEl.createEl('h2', { text: 'Border Configuration' });
 
-		Object.entries(this.plugin.settings.borders).forEach(([key, border]) => {
-			console.log(`Rendering settings for border: ${key} ${border} `);
-			this.renderBorderSettings(containerEl, key, border);
-		})
+		Object.entries(this.plugin.settings.borders).forEach(([key, config]) => {
+			this.renderBorderSettings(containerEl, key, config);
+		});
 	}
 
-	private renderBorderSettings(container: HTMLElement, key: string, border: any): void {
+	private renderBorderSettings(container: HTMLElement, key: string, config: BorderConfig): void {
 		const borderContainer = container.createDiv({ cls: 'border-setting-container' });
 		borderContainer.createEl('h3', { text: `border-${key}` });
 
-		this.addBorderName(container, key);
-		this.updateBorderStyle(container, border);
-	};
+		this.addBorderName(borderContainer, key);
+		this.addBorderStyleSettings(borderContainer, config);
+	}
 
 	private addBorderName(container: HTMLElement, key: string): void {
 		new Setting(container)
 			.setName('Border name')
 			.setDesc('Used in markdown as: ```border-<name>')
 			.addText(text => {
-				text
-					.setValue(key)
-					.inputEl.addEventListener('blur', () => this.renameBorder(key, text.getValue()));
+				text.setValue(key);
+				text.inputEl.addEventListener('blur', () =>
+					this.renameBorder(key, text.getValue())
+				);
 			});
 	}
 
@@ -60,11 +57,24 @@ export class SettingsTab extends PluginSettingTab {
 		this.display();
 	}
 
-	private updateBorderStyle(container: HTMLElement, border: BorderStyle): void {
-		const update = async (part: keyof BorderStyle, value: string) => {
+	private toggleCenterText(container: HTMLElement, config: BorderConfig): void {
+		new Setting(container)
+			.setName('Center text')
+			.setDesc('Do you want the text centered within the border')
+			.addToggle(toggle =>
+				toggle.setValue(config.centerText).onChange(async (value) => {
+					config.centerText = value;
+					await this.plugin.saveSettings();
+				})
+			);
+	}
+
+	private addBorderStyleSettings(container: HTMLElement, config: BorderConfig): void {
+		const border = config.style;
+		const update = async (part: keyof typeof border, value: string) => {
 			border[part] = value;
-			await this.plugin.saveData(this.plugin.settings);
-		}
+			await this.plugin.saveSettings();
+		};
 
 		new Setting(container)
 			.setName('Top border')
@@ -96,6 +106,9 @@ export class SettingsTab extends PluginSettingTab {
 
 		new Setting(container)
 			.setName('Bottom Right corner')
-			.addText(text => text.setValue(border.bottomRight).onChange(value => update('bottomRight', value)));	
+			.addText(text => text.setValue(border.bottomRight).onChange(value => update('bottomRight', value)));
+
+		this.toggleCenterText(container, config);
 	}
 }
+

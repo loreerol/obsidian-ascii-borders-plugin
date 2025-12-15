@@ -1,8 +1,8 @@
-import { BorderStyle } from './settings';
+import { BorderConfig } from './utils/types';
 import { createBorder } from './borderProcessor';
 import { createMeasureSpan, calculateReadableWidth, measureText } from './utils/measurements';
 
-export function renderBorder(source: string, el: HTMLElement, borderStyle: BorderStyle): void {
+export function renderBorder(source: string, el: HTMLElement, config: BorderConfig): void {
     const pre = el.createEl('pre');
     pre.style.whiteSpace = 'pre';
     pre.style.fontFamily = 'monospace';
@@ -15,9 +15,10 @@ export function renderBorder(source: string, el: HTMLElement, borderStyle: Borde
         const targetWidth = calculateReadableWidth(pre, measureSpan);
         const bordered = createBorder(
             source.trim(),
-            borderStyle,
+            config.style,
             (text) => measureText(text, measureSpan),
-            targetWidth
+            targetWidth,
+            config.centerText
         );
         pre.textContent = bordered;
     });
