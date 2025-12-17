@@ -1,8 +1,36 @@
-/*
+/* ASCII border content styling */
+.ascii-border-content {
+    white-space: pre;
+    font-family: monospace;
+    line-height: 1.2;
+    padding: 0;
+    margin: 0;
+}
 
-This CSS file will be included with your plugin, and
-available in the app when your plugin is enabled.
+/* Hidden span for measuring text width */
+.ascii-border-measure-span {
+    visibility: hidden;
+    position: absolute;
+    white-space: pre;
+    font-family: monospace;
+}
 
-If your plugin does not need CSS, delete this file.
+/* Target the container element for border code blocks */
+div[class*="block-language-border-"] {
+    padding: 0 !important;
+}
 
-*/
+/* Remove padding from pre elements in border blocks */
+div[class*="block-language-border-"] pre {
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+/* Settings page styling */
+.border-setting-container {
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    padding: 16px;
+    margin-bottom: 16px;
+    background-color: var(--background-secondary);
+}

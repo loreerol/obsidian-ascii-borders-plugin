@@ -3,10 +3,7 @@ import { createBorder } from './borderProcessor';
 import { createMeasureSpan, calculateReadableWidth, measureText } from './utils/measurements';
 
 export function renderBorder(source: string, el: HTMLElement, config: BorderConfig): void {
-    const pre = el.createEl('pre');
-    pre.style.whiteSpace = 'pre';
-    pre.style.fontFamily = 'monospace';
-    pre.style.lineHeight = '1.2';
+    const pre = el.createEl('pre', { cls: 'ascii-border-content' });
     
     const measureSpan = createMeasureSpan(pre);
     

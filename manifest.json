@@ -1,11 +1,10 @@
 {
-	"id": "ascii_borders",
-	"name": "Ascii Borders",
+	"id": "ascii-borders",
+	"name": "ASCII Borders",
 	"version": "1.0.0",
 	"minAppVersion": "0.15.0",
-	"description": "Demonstrates some of the capabilities of the Obsidian API.",
+	"description": "Add customizable ASCII art borders around text in your notes using code blocks.",
 	"author": "Lore Cavalier",
 	"authorUrl": "https://github.com/loreerol",
-	"fundingUrl": "https://obsidian.md/pricing",
 	"isDesktopOnly": false
 }

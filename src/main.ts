@@ -1,14 +1,14 @@
 import { Plugin } from 'obsidian';
-import { SettingsTab } from './src/SettingsTab';
-import { DEFAULT_SETTINGS } from './src/settings';
-import { AsciiBordersSettings } from './src/utils/types';
+import { SettingsTab } from './SettingsTab';
+import { DEFAULT_SETTINGS } from './settings';
+import { AsciiBordersSettings } from './utils/types';
 import { renderBorder } from 'src/renderer';
 
 export default class AsciiBorders extends Plugin {
 	settings: AsciiBordersSettings;
 
 	async onload() {
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+		await this.loadSettings();
 		
 		// Resister all border code block processors
 		Object.keys(this.settings.borders).forEach((borderName) => {
@@ -21,6 +21,10 @@ export default class AsciiBorders extends Plugin {
 	}
 
 	onunload() {}
+
+	async loadSettings() {
+		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData() || {});
+	}
 
 	async saveSettings() {
 		await this.saveData(this.settings);

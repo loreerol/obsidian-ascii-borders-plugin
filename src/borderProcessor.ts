@@ -1,5 +1,5 @@
 import { BorderStyle } from './utils/types';
-import { CONTENT_PADDING } from './utils/constrants';
+import { CONTENT_PADDING } from './utils/constants';
 
 // Center a pattern by filling left with first char and right with last char
 function centerPattern(

@@ -1,13 +1,12 @@
 import { 
 	BORDER_OVERHEAD, 
-	SAFETY_MARGIN_PERCENT, 
 	FALLBACK_WIDTH 
-} from './constrants';
+} from './constants';
 
 // Create a hidden span element for measuring text width in pixels
 export function createMeasureSpan(element: HTMLElement): HTMLSpanElement {
 	const span = element.ownerDocument.createElement('span');
-	span.style.cssText = 'visibility:hidden;position:absolute;white-space:pre;font-family:monospace';
+	span.className = 'ascii-border-measure-span';
 	element.appendChild(span);
 	return span;
 }
@@ -26,11 +25,9 @@ export function calculateReadableWidth(pre: HTMLElement, span: HTMLSpanElement):
 		span.textContent = ' ';
 		const actualCharWidth = span.getBoundingClientRect().width;
 		const charsAvailable = Math.floor(containerWidth / actualCharWidth);
-		const overhead = BORDER_OVERHEAD + Math.floor(charsAvailable * SAFETY_MARGIN_PERCENT);
-		return charsAvailable - overhead;
+		return charsAvailable - BORDER_OVERHEAD;
 	}
 	
 	// Fallback when container width is not yet available
-	const overhead = BORDER_OVERHEAD + Math.floor(FALLBACK_WIDTH * SAFETY_MARGIN_PERCENT);
-	return FALLBACK_WIDTH - overhead;
+	return FALLBACK_WIDTH - BORDER_OVERHEAD;
 }

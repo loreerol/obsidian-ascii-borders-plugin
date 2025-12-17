@@ -13,7 +13,10 @@ export class SettingsTab extends PluginSettingTab {
 	display(): void {
 		const { containerEl } = this;
 		containerEl.empty();
-		containerEl.createEl('h2', { text: 'Border Configuration' });
+
+		new Setting(containerEl)
+			.setName('Border configuration')
+			.setHeading();
 
 		Object.entries(this.plugin.settings.borders).forEach(([key, config]) => {
 			this.renderBorderSettings(containerEl, key, config);
@@ -22,7 +25,10 @@ export class SettingsTab extends PluginSettingTab {
 
 	private renderBorderSettings(container: HTMLElement, key: string, config: BorderConfig): void {
 		const borderContainer = container.createDiv({ cls: 'border-setting-container' });
-		borderContainer.createEl('h3', { text: `border-${key}` });
+		
+		new Setting(borderContainer)
+			.setName(`border-${key}`)
+			.setHeading();
 
 		this.addBorderName(borderContainer, key);
 		this.addBorderStyleSettings(borderContainer, config);
@@ -32,12 +38,13 @@ export class SettingsTab extends PluginSettingTab {
 		new Setting(container)
 			.setName('Border name')
 			.setDesc('Used in markdown as: ```border-<name>')
-			.addText(text => {
-				text.setValue(key);
-				text.inputEl.addEventListener('blur', () =>
-					this.renameBorder(key, text.getValue())
-				);
-			});
+			.addText(text => 
+				text
+					.setValue(key)
+					.onChange(async (value) => {
+						await this.renameBorder(key, value);
+					})
+			);
 	}
 
 	private async renameBorder(oldKey: string, newKey: string): Promise<void> {
