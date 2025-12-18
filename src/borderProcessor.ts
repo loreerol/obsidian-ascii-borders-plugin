@@ -1,5 +1,6 @@
 import { BorderStyle } from './utils/types';
 import { CONTENT_PADDING } from './utils/constants';
+import { wrapLine } from './utils/measurements';
 
 // Center a pattern by filling left with first char and right with last char
 function centerPattern(
@@ -53,8 +54,13 @@ export function createBorder(
     targetWidth = 0,
     centerText = false
 ): string {
-    // Determine content width
-    const lines = text.split('\n');
+    const rawLines = text.split('\n');
+
+    // Wrap lines explicitly
+    const lines = rawLines.flatMap(line =>
+        wrapLine(line, targetWidth)
+    );
+
     const maxLineLength = Math.max(...lines.map(l => l.length));
     const width = Math.max(targetWidth, maxLineLength);
 

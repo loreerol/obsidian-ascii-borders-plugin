@@ -27,3 +27,20 @@ export function calculateReadableWidth(
 
 	return Math.max(0, charsAvailable - BORDER_OVERHEAD);
 }
+
+export function wrapLine(line: string, maxWidth: number): string[] {
+    if (line.length <= maxWidth) {
+        return [line];
+    }
+
+    const wrapped: string[] = [];
+    let start = 0;
+
+    while (start < line.length) {
+        wrapped.push(line.slice(start, start + maxWidth));
+        start += maxWidth;
+    }
+
+    return wrapped;
+}
+
