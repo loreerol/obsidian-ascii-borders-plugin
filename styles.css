@@ -1,6 +1,6 @@
 /* ASCII border content styling */
 .ascii-border-content {
-    white-space: pre;
+    white-space: pre-wrap;
     font-family: var(--font-monospace);
     line-height: 1.2;
     padding: 0;

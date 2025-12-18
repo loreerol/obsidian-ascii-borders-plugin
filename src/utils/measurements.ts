@@ -1,3 +1,4 @@
+import { getMonospaceCharWidth } from 'src/charWidthCache';
 import {
 	BORDER_OVERHEAD,
 	FALLBACK_WIDTH
@@ -11,7 +12,7 @@ export function measureText(text: string, span: HTMLSpanElement): number {
 
 export function calculateReadableWidth(
 	container: HTMLElement,
-	span: HTMLSpanElement
+	measureSpan: HTMLSpanElement
 ): number {
 	const widthPx = container.getBoundingClientRect().width;
 
@@ -19,10 +20,8 @@ export function calculateReadableWidth(
 		return FALLBACK_WIDTH - BORDER_OVERHEAD;
 	}
 
-	// Measure a single monospace character
-	span.textContent = ' ';
-	const charWidth = span.getBoundingClientRect().width || 1;
-
+	// Measure a single monospace character and cache it
+	const charWidth = getMonospaceCharWidth(container, measureSpan);
 	const charsAvailable = Math.floor(widthPx / charWidth);
 
 	return Math.max(0, charsAvailable - BORDER_OVERHEAD);
