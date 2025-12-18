@@ -12,8 +12,14 @@ export default class AsciiBorders extends Plugin {
 		
 		// Resister all border code block processors
 		Object.keys(this.settings.borders).forEach((borderName) => {
-			this.registerMarkdownCodeBlockProcessor(`border-${borderName}`, (source, el) => {
-				renderBorder(source, el, this.settings.borders[borderName]);
+			this.registerMarkdownCodeBlockProcessor(`border-${borderName}`, (source, el, ctx) => {
+				renderBorder(
+					source, 
+					el, 
+					this.settings.borders[borderName],
+					this.app,
+					ctx
+				);
 			});
 		});
 
