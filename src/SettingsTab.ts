@@ -1,5 +1,5 @@
 import { App, Notice, PluginSettingTab, Setting } from 'obsidian';
-import type AsciiBorders from '../main';
+import type AsciiBorders from './main';
 import { BorderConfig } from './utils/types';
 
 export class SettingsTab extends PluginSettingTab {
@@ -25,7 +25,7 @@ export class SettingsTab extends PluginSettingTab {
 
 	private renderBorderSettings(container: HTMLElement, key: string, config: BorderConfig): void {
 		const borderContainer = container.createDiv({ cls: 'border-setting-container' });
-		
+
 		new Setting(borderContainer)
 			.setName(`border-${key}`)
 			.setHeading();
@@ -38,26 +38,24 @@ export class SettingsTab extends PluginSettingTab {
 		new Setting(container)
 			.setName('Border name')
 			.setDesc('Used in markdown as: ```border-<name>')
-			.addText(text => 
+			.addText(text =>
 				text
 					.setValue(key)
-					.onChange(async (value) => {
-						await this.renameBorder(key, value);
-					})
-			);
+					.inputEl.addEventListener('blur', () => this.renameBorder(key, text.getValue())));
 	}
 
-	private async renameBorder(oldKey: string, newKey: string): Promise<void> {
-		if (oldKey === newKey) return;
+	private async renameBorder(oldKey: string, newName: string): Promise<void> {
+		const newKey = newName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
-		const formatedNewKey = newKey.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+		if (!newKey || newKey === oldKey) return;
 
-		if (this.plugin.settings.borders[formatedNewKey]) {
-			new Notice(`A border with the name "${formatedNewKey}" already exists.`);
+
+		if (this.plugin.settings.borders[newKey]) {
+			new Notice(`A border with the name "${newKey}" already exists.`);
 			return;
 		}
 
-		this.plugin.settings.borders[formatedNewKey] = this.plugin.settings.borders[oldKey];
+		this.plugin.settings.borders[newKey] = this.plugin.settings.borders[oldKey];
 		delete this.plugin.settings.borders[oldKey];
 
 		await this.plugin.saveSettings();
