@@ -1,5 +1,5 @@
 // Character width calculations
-export const FALLBACK_WIDTH = 0;
+export const FALLBACK_WIDTH = 80;
 
 // Border layout
 export const CONTENT_PADDING = 2;           // Spaces on each side of content

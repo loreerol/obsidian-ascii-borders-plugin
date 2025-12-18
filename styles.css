@@ -1,7 +1,7 @@
 /* ASCII border content styling */
 .ascii-border-content {
     white-space: pre;
-    font-family: monospace;
+    font-family: var(--font-monospace);
     line-height: 1.2;
     padding: 0;
     margin: 0;
@@ -12,7 +12,7 @@
     visibility: hidden;
     position: absolute;
     white-space: pre;
-    font-family: monospace;
+    font-family: var(--font-monospace);
 }
 
 /* Target the container element for border code blocks */
@@ -33,4 +33,7 @@ div[class*="block-language-border-"] pre {
     padding: 16px;
     margin-bottom: 16px;
     background-color: var(--background-secondary);
+}
+.ascii-border-container {
+    position: relative;
 }
