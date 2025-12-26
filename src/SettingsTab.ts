@@ -4,10 +4,12 @@ import { BorderConfig, BorderStyle } from './utils/types';
 
 export class SettingsTab extends PluginSettingTab {
 	plugin: AsciiBorders;
+	private updateTimeouts: Map<string, NodeJS.Timeout>;
 
 	constructor(app: App, plugin: AsciiBorders) {
 		super(app, plugin);
 		this.plugin = plugin;
+		this.updateTimeouts = new Map();
 	}
 
 	display(): void {
@@ -25,15 +27,30 @@ export class SettingsTab extends PluginSettingTab {
 		});
 	}
 
-	private renderBorderSettings(container: HTMLElement, key: string, config: BorderConfig): void {
-		const borderContainer = container.createDiv({ cls: 'border-setting-container' });
+	private async saveAndRefresh(): Promise<void> {
+		await this.plugin.saveSettings();
+		
+		// Dispatch custom event to all border containers
+		const borderContainers = document.querySelectorAll('.ascii-border-container');
+		borderContainers.forEach(container => {
+			container.dispatchEvent(new Event('ascii-border-update'));
+		});
+	}
 
-		new Setting(borderContainer)
-			.setName(`border-${key}`)
-			.setHeading();
+	private debouncedSaveAndRefresh(key: string, delay = 500): void {
+		// Clear existing timeout for this key
+		const existingTimeout = this.updateTimeouts.get(key);
+		if (existingTimeout) {
+			clearTimeout(existingTimeout);
+		}
 
-		this.addBorderName(borderContainer, key);
-		this.addBorderStyleSettings(borderContainer, config);
+		// Set new timeout
+		const timeoutId = setTimeout(async () => {
+			await this.saveAndRefresh();
+			this.updateTimeouts.delete(key);
+		}, delay);
+
+		this.updateTimeouts.set(key, timeoutId);
 	}
 
 	private addNewBorderButton(container: HTMLElement): void {
@@ -45,46 +62,65 @@ export class SettingsTab extends PluginSettingTab {
 	}
 
 	private async addBorder(): Promise<void> {
+		const key = this.generateUniqueBorderName();
+		const newBorder = this.createDefaultBorder();
+
+		// Add new border at the top
+		this.plugin.settings.borders = {
+			[key]: newBorder,
+			...this.plugin.settings.borders
+		};
+
+		await this.saveAndRefresh();
+		this.display();
+	}
+
+	private generateUniqueBorderName(): string {
 		let counter = 1;
 		let key = 'custom';
 		while (this.plugin.settings.borders[key]) {
 			key = `custom-${counter++}`;
 		}
+		return key;
+	}
 
-		const newBorderStyle: BorderStyle = {
-			top: '═',
-			bottom: '═',
-			left: '║',
-			right: '║',
-			topLeft: '╔',
-			topRight: '╗',
-			bottomLeft: '╚',
-			bottomRight: '╝'
-		};
-
-		const newBorder: BorderConfig = {
-			style: newBorderStyle,
+	private createDefaultBorder(): BorderConfig {
+		return {
+			style: {
+				top: '═',
+				bottom: '═',
+				left: '║',
+				right: '║',
+				topLeft: '╔',
+				topRight: '╗',
+				bottomLeft: '╚',
+				bottomRight: '╝'
+			},
 			centerText: false
 		};
+	}
 
-		const newBorders: Record<string, BorderConfig> = {
-			[key]: newBorder,
-			...this.plugin.settings.borders
-		};
+	private renderBorderSettings(container: HTMLElement, key: string, config: BorderConfig): void {
+		const borderContainer = container.createDiv({ cls: 'border-setting-container' });
 
-		this.plugin.settings.borders = newBorders;
-		await this.plugin.saveSettings();
-		this.display()
+		new Setting(borderContainer)
+			.setName(`border-${key}`)
+			.setHeading();
+
+		this.addBorderName(borderContainer, key);
+		this.addBorderStyleSettings(borderContainer, key, config);
 	}
 
 	private addBorderName(container: HTMLElement, key: string): void {
 		new Setting(container)
 			.setName('Border name')
 			.setDesc('Used in markdown as: ```border-<name>')
-			.addText(text =>
-				text
-					.setValue(key)
-					.inputEl.addEventListener('blur', () => this.renameBorder(key, text.getValue())));
+			.addText(text => {
+				text.setValue(key);
+				text.inputEl.addEventListener('blur', () => {
+					this.renameBorder(key, text.getValue());
+				});
+			});
 	}
 
 	private async renameBorder(oldKey: string, newName: string): Promise<void> {
@@ -109,62 +145,90 @@ export class SettingsTab extends PluginSettingTab {
 		}
 
 		this.plugin.settings.borders = newBorders;
-		await this.plugin.saveSettings();
+		await this.saveAndRefresh();
 		this.display();
 	}
 
-	private toggleCenterText(container: HTMLElement, config: BorderConfig): void {
-		new Setting(container)
-			.setName('Center text')
-			.setDesc('Do you want the text centered within the border')
-			.addToggle(toggle =>
-				toggle.setValue(config.centerText).onChange(async (value) => {
-					config.centerText = value;
-					await this.plugin.saveSettings();
-				})
-			);
+	private async deleteBorder(key: string): Promise<void> {
+		delete this.plugin.settings.borders[key];
+		await this.saveAndRefresh();
+		this.display();
 	}
 
-	private addBorderStyleSettings(container: HTMLElement, config: BorderConfig): void {
+	private addBorderStyleSettings(container: HTMLElement, key: string, config: BorderConfig): void {
 		const border = config.style;
-		const update = async (part: keyof typeof border, value: string) => {
+		
+		const update = (part: keyof BorderStyle, value: string) => {
+			// Update immediately in memory
 			border[part] = value;
-			await this.plugin.saveSettings();
+			
+			// Debounce the save and refresh
+			this.debouncedSaveAndRefresh(`${key}-${part}`);
 		};
 
 		new Setting(container)
-			.setName('Top border')
-			.addText(text => text.setValue(border.top).onChange(value => update('top', value)));
+			.setName('Border Top')
+			.setDesc('Pattern that repeats horizontally (e.g., "═" or "══✧══")')
+			.addText(text => text
+				.setValue(border.top)
+				.onChange(value => update('top', value)));
 
 		new Setting(container)
-			.setName('Bottom border')
-			.addText(text => text.setValue(border.bottom).onChange(value => update('bottom', value)));
+			.setName('Border Bottom')
+			.setDesc('Pattern that repeats horizontally')
+			.addText(text => text
+				.setValue(border.bottom)
+				.onChange(value => update('bottom', value)));
 
 		new Setting(container)
-			.setName('Left border')
-			.addText(text => text.setValue(border.left).onChange(value => update('left', value)));
+			.setName('Sides')
+			.setDesc('Left and right border characters')
+			.addText(text => text
+				.setValue(border.left)
+				.setPlaceholder('Left')
+				.onChange(value => update('left', value)))
+			.addText(text => text
+				.setValue(border.right)
+				.setPlaceholder('Right')
+				.onChange(value => update('right', value)));
 
 		new Setting(container)
-			.setName('Right border')
-			.addText(text => text.setValue(border.right).onChange(value => update('right', value)));
+			.setName('Top Corners')
+			.setDesc('Top-left and top-right corner characters')
+			.addText(text => text
+				.setValue(border.topLeft)
+				.setPlaceholder('Left')
+				.onChange(value => update('topLeft', value)))
+			.addText(text => text
+				.setValue(border.topRight)
+				.setPlaceholder('Right')
+				.onChange(value => update('topRight', value)));
 
 		new Setting(container)
-			.setName('Top Left corner')
-			.addText(text => text.setValue(border.topLeft).onChange(value => update('topLeft', value)));
+			.setName('Bottom Corners')
+			.setDesc('Bottom-left and bottom-right corner characters')
+			.addText(text => text
+				.setValue(border.bottomLeft)
+				.setPlaceholder('Left')
+				.onChange(value => update('bottomLeft', value)))
+			.addText(text => text
+				.setValue(border.bottomRight)
+				.setPlaceholder('Right')
+				.onChange(value => update('bottomRight', value)));
 
 		new Setting(container)
-			.setName('Top Right corner')
-			.addText(text => text.setValue(border.topRight).onChange(value => update('topRight', value)));
-
-		new Setting(container)
-			.setName('Bottom Left corner')
-			.addText(text => text.setValue(border.bottomLeft).onChange(value => update('bottomLeft', value)));
-
-		new Setting(container)
-			.setName('Bottom Right corner')
-			.addText(text => text.setValue(border.bottomRight).onChange(value => update('bottomRight', value)));
-
-		this.toggleCenterText(container, config);
+			.setName('Center text')
+			.setClass('border-style-footer')
+			.addToggle(toggle => toggle
+				.setValue(config.centerText)
+				.onChange(async (value) => {
+					config.centerText = value;
+					await this.saveAndRefresh();
+				}))
+			.addButton(btn => btn
+				.setButtonText('Delete')
+				.setWarning()
+				.onClick(() => this.deleteBorder(key)));
 	}
 }
 

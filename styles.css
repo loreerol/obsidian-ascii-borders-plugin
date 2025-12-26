@@ -37,3 +37,25 @@ div[class*="block-language-border-"] pre {
 .ascii-border-container {
     position: relative;
 }
+
+.border-style-footer {
+	display: flex;
+	justify-content: space-between;
+	margin-top: 1em;
+	padding-top: 1em;
+	border-top: 1px solid var(--background-modifier-border);
+}
+
+.border-style-footer .setting-item-name {
+	margin-right: 10px;
+}
+
+.border-style-footer .setting-item-info {
+	display: contents;
+}
+
+.border-style-footer .setting-item-control {
+	display: flex;
+	justify-content: space-between;
+	gap: 8px;
+}
