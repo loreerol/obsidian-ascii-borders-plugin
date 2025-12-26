@@ -34,5 +34,6 @@ export default class AsciiBorders extends Plugin {
 
 	async saveSettings() {
 		await this.saveData(this.settings);
+		this.app.workspace.trigger('markdown-preview-refresh');
 	}	
 }

@@ -1,9 +1,15 @@
 import { BorderConfig } from './utils/types';
 import { createBorder } from './borderProcessor';
-import { calculateReadableWidth, measureText } from './utils/measurements';
-import { App, MarkdownPostProcessorContext, MarkdownView } from 'obsidian';
+import { calculateReadableWidth } from './utils/measurements';
+import { App, MarkdownPostProcessorContext, MarkdownView, MarkdownRenderChild } from 'obsidian';
 
-export function renderBorder(source: string, el: HTMLElement, config: BorderConfig, app: App, ctx: MarkdownPostProcessorContext): void {
+export function renderBorder(
+    source: string, 
+    el: HTMLElement, 
+    config: BorderConfig, 
+    app: App, 
+    ctx: MarkdownPostProcessorContext
+): void {
     const container = el.createDiv({ cls: 'ascii-border-container' });
 
     const pre = container.createEl('pre', { cls: 'ascii-border-content' });
@@ -13,6 +19,7 @@ export function renderBorder(source: string, el: HTMLElement, config: BorderConf
     });
 
     let scheduled = false;
+    let resizeObserver: ResizeObserver | null = null;
 
     const render = () => {
         const targetWidth = calculateReadableWidth(pre, measureSpan);
@@ -40,9 +47,10 @@ export function renderBorder(source: string, el: HTMLElement, config: BorderConf
 
     scheduleRender();
 
-    const resizeObserver = new ResizeObserver(() => {
+    resizeObserver = new ResizeObserver(() => {
         if (!container.isConnected) {
-            resizeObserver.disconnect();
+            resizeObserver?.disconnect();
+            resizeObserver = null;
             return;
         }
         scheduleRender();
@@ -50,8 +58,16 @@ export function renderBorder(source: string, el: HTMLElement, config: BorderConf
 
     resizeObserver.observe(container);
 
+    // Listen for settings updates
+    const settingsUpdateHandler = () => {
+        scheduleRender();
+    };
+    
+    // Trigger re-renders
+    container.addEventListener('ascii-border-update', settingsUpdateHandler);
+
     // Click anywhere to edit
-    pre.addEventListener('click', async () => {
+    const clickHandler = async () => {
         const sectionInfo = ctx.getSectionInfo(container);
         if (!sectionInfo) return;
 
@@ -66,7 +82,23 @@ export function renderBorder(source: string, el: HTMLElement, config: BorderConf
 
         const lastLine = view.editor.getLine(sectionInfo.lineEnd);
         // position cursor on the last line, before the closing back ticks
-        view.editor.setCursor({ line: sectionInfo.lineEnd, ch: lastLine.length - 3 });
+        view.editor.setCursor({ 
+            line: sectionInfo.lineEnd, 
+            ch: lastLine.length - 3 
+        });
         view.editor.focus();
-    });
+    };
+    
+    pre.addEventListener('click', clickHandler);
+
+    // Proper cleanup using MarkdownRenderChild
+    const cleanup = new MarkdownRenderChild(container);
+    cleanup.onunload = () => {
+        resizeObserver?.disconnect();
+        resizeObserver = null;
+        pre.removeEventListener('click', clickHandler);
+        container.removeEventListener('ascii-border-update', settingsUpdateHandler);
+    };
+    
+    ctx.addChild(cleanup);
 }
