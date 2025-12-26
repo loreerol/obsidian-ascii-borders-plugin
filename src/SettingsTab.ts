@@ -1,6 +1,6 @@
 import { App, Notice, PluginSettingTab, Setting } from 'obsidian';
 import type AsciiBorders from './main';
-import { BorderConfig } from './utils/types';
+import { BorderConfig, BorderStyle } from './utils/types';
 
 export class SettingsTab extends PluginSettingTab {
 	plugin: AsciiBorders;
@@ -15,8 +15,10 @@ export class SettingsTab extends PluginSettingTab {
 		containerEl.empty();
 
 		new Setting(containerEl)
-			.setName('Border configuration')
+			.setName('Border Configuration')
 			.setHeading();
+
+		this.addNewBorderButton(containerEl);
 
 		Object.entries(this.plugin.settings.borders).forEach(([key, config]) => {
 			this.renderBorderSettings(containerEl, key, config);
@@ -32,6 +34,47 @@ export class SettingsTab extends PluginSettingTab {
 
 		this.addBorderName(borderContainer, key);
 		this.addBorderStyleSettings(borderContainer, config);
+	}
+
+	private addNewBorderButton(container: HTMLElement): void {
+		new Setting(container)
+			.addButton(btn => btn
+				.setButtonText('Add Border')
+				.setCta()
+				.onClick(() => this.addBorder()))
+	}
+
+	private async addBorder(): Promise<void> {
+		let counter = 1;
+		let key = 'custom';
+		while (this.plugin.settings.borders[key]) {
+			key = `custom-${counter++}`;
+		}
+
+		const newBorderStyle: BorderStyle = {
+			top: '═',
+			bottom: '═',
+			left: '║',
+			right: '║',
+			topLeft: '╔',
+			topRight: '╗',
+			bottomLeft: '╚',
+			bottomRight: '╝'
+		};
+
+		const newBorder: BorderConfig = {
+			style: newBorderStyle,
+			centerText: false
+		};
+
+		const newBorders: Record<string, BorderConfig> = {
+			[key]: newBorder,
+			...this.plugin.settings.borders
+		};
+
+		this.plugin.settings.borders = newBorders;
+		await this.plugin.saveSettings();
+		this.display()
 	}
 
 	private addBorderName(container: HTMLElement, key: string): void {
