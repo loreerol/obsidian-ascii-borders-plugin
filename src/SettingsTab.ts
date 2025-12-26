@@ -55,9 +55,17 @@ export class SettingsTab extends PluginSettingTab {
 			return;
 		}
 
-		this.plugin.settings.borders[newKey] = this.plugin.settings.borders[oldKey];
-		delete this.plugin.settings.borders[oldKey];
+		// Preserve order of borders
+		const newBorders: Record<string, BorderConfig> = {};
+		for (const [key, config] of Object.entries(this.plugin.settings.borders)) {
+			if (key === oldKey) {
+				newBorders[newKey] = config;
+			} else {
+				newBorders[key] = config;
+			}
+		}
 
+		this.plugin.settings.borders = newBorders;
 		await this.plugin.saveSettings();
 		this.display();
 	}
