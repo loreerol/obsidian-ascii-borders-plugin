@@ -8,18 +8,31 @@ function centerPattern(
     targetWidth: number,
     measureWidth: (text: string) => number
 ): string {
+    if (!pattern || pattern.length === 0) {
+        return '';
+    }
+
+    // Egyptian hieroglyphs use surrogate pairs (2 UTF-16 code units), we need to use Array.from() to prevent spliting them incorrectly
+    const patternChars = Array.from(pattern);
+    
     // Extract fill characters from pattern edges
-    const leftChar = pattern[0];
-    const rightChar = pattern[pattern.length - 1];
+    const leftChar = patternChars[0];
+    const rightChar = patternChars[patternChars.length - 1];
 
     const leftCharWidth = measureWidth(leftChar);
     const rightCharWidth = measureWidth(rightChar);
-    const availableWidth = targetWidth - measureWidth(pattern);
+    const patternWidth = measureWidth(pattern);
+    const availableWidth = targetWidth - patternWidth;
+
+    // Guard against negative or zero widths
+    if (availableWidth <= 0 || leftCharWidth <= 0 || rightCharWidth <= 0) {
+        return pattern;
+    }
 
     // Calculate how many characters fit on each side
     const leftCount = Math.floor(availableWidth / 2 / leftCharWidth);
     const rightWidth = availableWidth - (leftCount * leftCharWidth);
-    const rightCount = Math.round(rightWidth / rightCharWidth);
+    const rightCount = Math.max(0, Math.round(rightWidth / rightCharWidth));
 
     return leftChar.repeat(leftCount) + pattern + rightChar.repeat(rightCount);
 }
