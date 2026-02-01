@@ -1,0 +1,7 @@
+/* Hidden span for measuring text width */
+.ascii-border-measure-span {
+    visibility: hidden;
+    position: absolute;
+    white-space: pre;
+    font-family: var(--font-monospace);
+}

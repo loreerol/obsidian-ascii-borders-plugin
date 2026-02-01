@@ -1,0 +1,23 @@
+/* ASCII border content styling */
+.ascii-border-content {
+    white-space: pre-wrap;
+    font-family: var(--font-monospace);
+    line-height: 1.2;
+    padding: 0;
+    margin: 0;
+}
+
+.ascii-border-container {
+    position: relative;
+}
+
+/* Target the container element for border code blocks */
+div[class*="block-language-border-"] {
+    padding: 0 !important;
+}
+
+/* Remove padding from pre elements in border blocks */
+div[class*="block-language-border-"] pre {
+    padding: 0 !important;
+    margin: 0 !important;
+}
