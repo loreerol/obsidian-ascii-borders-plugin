@@ -1,6 +1,8 @@
 import { App, Notice, PluginSettingTab, Setting } from 'obsidian';
 import type AsciiBorders from './main';
 import { BorderConfig, BorderStyle } from './utils/types';
+import { createBorder } from './borderProcessor';
+import { calculateReadableWidth } from './utils/measurements';
 
 export class SettingsTab extends PluginSettingTab {
 	plugin: AsciiBorders;
@@ -107,8 +109,48 @@ export class SettingsTab extends PluginSettingTab {
 			.setName(`border-${key}`)
 			.setHeading();
 
+		this.addBorderPreview(borderContainer, config);
+
 		this.addBorderName(borderContainer, key);
 		this.addBorderStyleSettings(borderContainer, key, config);
+	}
+
+	private addBorderPreview(container: HTMLElement, config: BorderConfig): void {
+		const previewContainer = container.createEl('pre', { cls: 'border-preview' });
+
+		const measureSpan = container.createEl('span', {
+			cls: 'ascii-border-measure-span'
+		});
+
+		const updatePreview = () => {
+			try {
+				const sampleText = 'Sample Text';
+
+				const targetWidth = calculateReadableWidth(previewContainer, measureSpan);
+
+				const bordered = createBorder(
+					sampleText,
+					config.style,
+					(text) => {
+						measureSpan.textContent = text;
+						return measureSpan.getBoundingClientRect().width;
+					},
+					targetWidth,
+					config.centerText
+				);
+
+				previewContainer.textContent = bordered
+			} catch (error) {
+				previewContainer.textContent = 'Error rendering preview';
+				console.error('Error rendering preview:', error);
+			}
+		};
+
+		// Delay to ensure container has width
+		setTimeout(updatePreview, 0);
+
+		// Store update function for later user
+		(previewContainer as any)._updatePreview = updatePreview;
 	}
 
 	private addBorderName(container: HTMLElement, key: string): void {
@@ -161,6 +203,9 @@ export class SettingsTab extends PluginSettingTab {
 		const update = (part: keyof BorderStyle, value: string) => {
 			// Update immediately in memory
 			border[part] = value;
+
+			// Update preview
+			this.updateBorderPreview(container);
 			
 			// Debounce the save and refresh
 			this.debouncedSaveAndRefresh(`${key}-${part}`);
@@ -182,39 +227,39 @@ export class SettingsTab extends PluginSettingTab {
 
 		new Setting(container)
 			.setName('Sides')
-			.setDesc('Left and right border characters')
+			.setDesc('Left and right border characters (single character only)')
 			.addText(text => text
 				.setValue(border.left)
 				.setPlaceholder('Left')
-				.onChange(value => update('left', value)))
+				.onChange(value => update('left', value.slice(0, 1))))
 			.addText(text => text
 				.setValue(border.right)
 				.setPlaceholder('Right')
-				.onChange(value => update('right', value)));
+				.onChange(value => update('right', value.slice(0, 1))));
 
 		new Setting(container)
 			.setName('Top Corners')
-			.setDesc('Top-left and top-right corner characters')
+			.setDesc('Top-left and top-right corner characters (single character only)')
 			.addText(text => text
 				.setValue(border.topLeft)
 				.setPlaceholder('Left')
-				.onChange(value => update('topLeft', value)))
+				.onChange(value => update('topLeft', value.slice(0, 1))))
 			.addText(text => text
 				.setValue(border.topRight)
 				.setPlaceholder('Right')
-				.onChange(value => update('topRight', value)));
+				.onChange(value => update('topRight', value.slice(0, 1))));
 
 		new Setting(container)
 			.setName('Bottom Corners')
-			.setDesc('Bottom-left and bottom-right corner characters')
+			.setDesc('Bottom-left and bottom-right corner characters (single character only)')
 			.addText(text => text
 				.setValue(border.bottomLeft)
 				.setPlaceholder('Left')
-				.onChange(value => update('bottomLeft', value)))
+				.onChange(value => update('bottomLeft', value.slice(0, 1))))
 			.addText(text => text
 				.setValue(border.bottomRight)
 				.setPlaceholder('Right')
-				.onChange(value => update('bottomRight', value)));
+				.onChange(value => update('bottomRight', value.slice(0, 1))));
 
 		new Setting(container)
 			.setName('Center text')
@@ -223,12 +268,20 @@ export class SettingsTab extends PluginSettingTab {
 				.setValue(config.centerText)
 				.onChange(async (value) => {
 					config.centerText = value;
+					this.updateBorderPreview(container);
 					await this.saveAndRefresh();
 				}))
 			.addButton(btn => btn
 				.setButtonText('Delete')
 				.setWarning()
 				.onClick(() => this.deleteBorder(key)));
+	}
+
+	private updateBorderPreview(container: HTMLElement): void {
+		const preview = container.querySelector('.border-preview') as HTMLPreElement;
+		if (preview && (preview as any)._updatePreview) {
+			(preview as any)._updatePreview();
+		}
 	}
 }
 
