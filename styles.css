@@ -1,3 +1,97 @@
-@import url("src/styles/border.css");
-@import url("src/styles/settings.css");
-@import url("src/styles/utils.css");
+/* Border content styling */
+.ascii-border-content {
+    white-space: pre-wrap;
+    font-family: var(--font-monospace);
+    line-height: 1.2;
+    padding: 0;
+    margin: 0;
+}
+
+.ascii-border-container {
+    position: relative;
+}
+
+div[class*="block-language-border-"] {
+    padding: 0 !important;
+}
+
+div[class*="block-language-border-"] pre {
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+/* Hidden span for measuring text width */
+.ascii-border-measure-span {
+    visibility: hidden;
+    position: absolute;
+    white-space: pre;
+    font-family: var(--font-monospace);
+}
+
+/* Settings page styling */
+.ascii-borders-instructions {
+	background-color: var(--background-secondary);
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 4px;
+	padding: 12px 16px;
+	margin-bottom: 16px;
+	font-size: 0.9em;
+}
+
+.ascii-borders-instructions p {
+	margin: 8px 0;
+}
+
+.ascii-borders-instructions p:first-child {
+	margin-top: 0;
+}
+
+.ascii-borders-instructions p:last-child {
+	margin-bottom: 0;
+}
+
+.ascii-borders-instructions code {
+	background-color: var(--background-primary-alt);
+	padding: 2px 4px;
+	border-radius: 3px;
+	font-size: 0.95em;
+}
+
+.border-setting-container {
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    padding: 16px;
+    margin-bottom: 16px;
+    background-color: var(--background-secondary);
+}
+
+.border-style-footer {
+	display: flex;
+	justify-content: space-between;
+	margin-top: 1em;
+	padding-top: 1em;
+	border-top: 1px solid var(--background-modifier-border);
+}
+
+.border-style-footer .setting-item-name {
+	margin-right: 10px;
+}
+
+.border-style-footer .setting-item-info {
+	display: contents;
+}
+
+.border-style-footer .setting-item-control {
+	display: flex;
+	justify-content: space-between;
+	gap: 8px;
+}
+
+.border-preview {
+	width: 100%;
+	box-sizing: border-box;
+	white-space: pre;
+	background: var(--background-primary);
+	border-radius: 4px;
+	border: 1px solid var(--background-modifier-border);
+}
