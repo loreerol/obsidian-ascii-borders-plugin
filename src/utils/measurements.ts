@@ -28,15 +28,18 @@ export function calculateReadableWidth(
 }
 
 export function wrapLine(line: string, maxWidth: number): string[] {
-    if (line.length <= maxWidth) {
+    // Use Array.from to properly handle surrogate pairs (e.g., Egyptian hieroglyphs)
+    const chars = Array.from(line);
+    
+    if (chars.length <= maxWidth) {
         return [line];
     }
 
     const wrapped: string[] = [];
     let start = 0;
 
-    while (start < line.length) {
-        wrapped.push(line.slice(start, start + maxWidth));
+    while (start < chars.length) {
+        wrapped.push(chars.slice(start, start + maxWidth).join(''));
         start += maxWidth;
     }
 
