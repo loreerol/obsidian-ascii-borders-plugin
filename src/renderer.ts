@@ -66,13 +66,19 @@ export function renderBorder(
     // Trigger re-renders
     container.addEventListener('ascii-border-update', settingsUpdateHandler);
 
-    // Click anywhere to edit
+    // Click anywhere to edit (only in preview/source mode, not reading mode)
     const clickHandler = async () => {
         const sectionInfo = ctx.getSectionInfo(container);
         if (!sectionInfo) return;
 
         const view = app.workspace.getActiveViewOfType(MarkdownView);
         if (!view) return;
+
+        // Check if in reading mode - don't allow editing
+        const viewState = view.leaf.getViewState();
+        if (viewState.state?.mode === 'preview' && viewState.state?.source === false) {
+            return;
+        }
 
         if (view.getMode() === 'preview') {
             await view.setState({ mode: 'source' }, {
@@ -82,9 +88,9 @@ export function renderBorder(
 
         const lastLine = view.editor.getLine(sectionInfo.lineEnd);
         // position cursor on the last line, before the closing back ticks
-        view.editor.setCursor({ 
-            line: sectionInfo.lineEnd, 
-            ch: lastLine.length - 3 
+        view.editor.setCursor({
+            line: sectionInfo.lineEnd,
+            ch: lastLine.length - 3
         });
         view.editor.focus();
     };
