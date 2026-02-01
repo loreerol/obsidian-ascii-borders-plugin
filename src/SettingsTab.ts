@@ -22,6 +22,8 @@ export class SettingsTab extends PluginSettingTab {
 			.setName('Border Configuration')
 			.setHeading();
 
+		this.addInstructions(containerEl);
+
 		this.addNewBorderButton(containerEl);
 
 		Object.entries(this.plugin.settings.borders).forEach(([key, config]) => {
@@ -29,9 +31,23 @@ export class SettingsTab extends PluginSettingTab {
 		});
 	}
 
+	private addInstructions(container: HTMLElement): void {
+		const instructionsEl = container.createDiv({ cls: 'ascii-borders-instructions' });
+		instructionsEl.innerHTML = `
+			<p><strong>Managing Borders:</strong> 
+			<ul> <li> Add new borders with the button below.</li> <li> Customize borders by updating characters in each border's settings.</li> <li> Delete borders with the Delete button.</li> </ul></p>
+			<p><strong>Applying Borders:</strong></p>
+			 <p>Use a code block:</p>
+			  <p><code>\`\`\`border-&lt;name&gt;</code></p>
+			   Your text
+			    <p><code>\`\`\`</code></p>
+			<p><strong>Editing Text:</strong><ul><li> In reading view, click the border to switch to edit mode.</li> <li>Edit the markdown text inside the code block.</li></p>
+		`;
+	}
+
 	private async saveAndRefresh(): Promise<void> {
 		await this.plugin.saveSettings();
-		
+
 		// Dispatch custom event to all border containers
 		const borderContainers = document.querySelectorAll('.ascii-border-container');
 		borderContainers.forEach(container => {
@@ -199,7 +215,7 @@ export class SettingsTab extends PluginSettingTab {
 
 	private addBorderStyleSettings(container: HTMLElement, key: string, config: BorderConfig): void {
 		const border = config.style;
-		
+
 		const update = (part: keyof BorderStyle, value: string) => {
 			// Update immediately in memory
 			border[part] = value;
