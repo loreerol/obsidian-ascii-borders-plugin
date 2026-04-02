@@ -391,17 +391,19 @@ describe('SettingsTab', () => {
     });
 
     test('shows error message on preview failure', () => {
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
       createBorder.mockImplementationOnce(() => {
         throw new Error('Preview error');
       });
-
       const container = mockContainer.createDiv();
       const config = (settingsTab as any).createDefaultBorder();
-
       (settingsTab as any).addBorderPreview(container, config);
       jest.advanceTimersByTime(1);
 
       expect(mockPreview.textContent).toBe('Error rendering preview');
+      expect(consoleSpy).toHaveBeenCalledWith('Error rendering preview:', expect.any(Error));
+      consoleSpy.mockRestore();
     });
 
     test('stores update function on preview element', () => {
