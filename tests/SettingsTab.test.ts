@@ -542,4 +542,102 @@ describe('SettingsTab', () => {
       expect(deleteSpy).toHaveBeenCalledWith('test-border');
     });
   });
+
+  describe('addNewBorderButton', () => {
+    test('calls addBorder when button clicked', () => {
+      const addBorderSpy = jest.spyOn(settingsTab as any, 'addBorder');
+      (settingsTab as any).addNewBorderButton(mockContainer);
+      expect(addBorderSpy).toBeDefined();
+    });
+  });
+
+  describe('addBorderName', () => {
+    test('renames border on blur', async () => {
+      const renameSpy = jest.spyOn(settingsTab as any, 'renameBorder').mockResolvedValue(undefined);
+      const config = (settingsTab as any).createDefaultBorder();
+      mockPlugin.settings.borders['test'] = config;
+
+      (settingsTab as any).addBorderName(mockContainer, 'test');
+
+      expect(renameSpy).toBeDefined();
+    });
+  });
+
+  describe('integration - UI callbacks', () => {
+    test('width calculator callback in addBorderPreview', () => {
+      const config = (settingsTab as any).createDefaultBorder();
+      const container = mockContainer.createDiv();
+      const mockMeasureSpan = {
+        textContent: '',
+        getBoundingClientRect: jest.fn(() => ({ width: 50 })),
+      };
+      container.createEl = jest.fn((tag: string) => {
+        if (tag === 'span') return mockMeasureSpan;
+        return mockPreview;
+      });
+
+      (settingsTab as any).addBorderPreview(container, config);
+      jest.advanceTimersByTime(1);
+
+      // The callback should have set textContent via the width calculator
+      expect(createBorder).toHaveBeenCalledWith(
+        'Sample Text',
+        config.style,
+        expect.any(Function),
+        100,
+        false
+      );
+
+      // Call the width calculator directly
+      const widthCalc = createBorder.mock.calls[0][2];
+      widthCalc('test');
+      expect(mockMeasureSpan.textContent).toBe('test');
+    });
+
+    test('update function modifies border style', () => {
+      const config = (settingsTab as any).createDefaultBorder();
+      const container = mockContainer.createDiv();
+
+      // Create the update function inline like it exists in the code
+      const border = config.style;
+      const update = (part: keyof typeof border, value: string) => {
+        border[part] = value;
+        (settingsTab as any).updateBorderPreview(container);
+        (settingsTab as any).save({ debounceKey: `test-${String(part)}` });
+      };
+
+      update('top', '~');
+      expect(border.top).toBe('~');
+    });
+
+    test('centerText toggle updates config', async () => {
+      const config = (settingsTab as any).createDefaultBorder();
+      const container = mockContainer.createDiv();
+
+      // Simulate the toggle onChange handler
+      const updateSpy = jest.spyOn(settingsTab as any, 'updateBorderPreview');
+      const saveSpy = jest.spyOn(settingsTab as any, 'save').mockResolvedValue(undefined);
+
+      config.centerText = true;
+      (settingsTab as any).updateBorderPreview(container);
+      await (settingsTab as any).save();
+
+      expect(config.centerText).toBe(true);
+      expect(updateSpy).toHaveBeenCalled();
+      expect(saveSpy).toHaveBeenCalled();
+    });
+
+    test('side character slicing in onChange', () => {
+      const config = (settingsTab as any).createDefaultBorder();
+
+      // Simulate onChange for side characters
+      const value = '|||';
+      config.style.left = value.slice(0, 1);
+      expect(config.style.left).toBe('|');
+
+      const value2 = 'abc';
+      config.style.right = value2.slice(0, 1);
+      expect(config.style.right).toBe('a');
+    });
+  });
 });

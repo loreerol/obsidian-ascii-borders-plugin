@@ -2,6 +2,10 @@ import { describe, expect, test, jest, beforeEach } from '@jest/globals';
 import AsciiBorders from '../src/main';
 import { DEFAULT_SETTINGS } from '../src/settings';
 
+jest.mock('../src/renderer', () => ({
+  renderBorder: jest.fn(),
+}));
+
 // Mock Obsidian
 const mockApp = {
   workspace: {
@@ -52,6 +56,28 @@ describe('AsciiBorders Plugin', () => {
       plugin.loadData = jest.fn(() => Promise.resolve({})) as any;
       await plugin.onload();
       expect(plugin.addSettingTab).toHaveBeenCalledTimes(1);
+    });
+
+    test('registers callback that calls renderBorder', async () => {
+      const { renderBorder } = require('../src/renderer');
+      plugin.loadData = jest.fn(() => Promise.resolve({})) as any;
+      await plugin.onload();
+
+      const calls = (plugin.registerMarkdownCodeBlockProcessor as jest.Mock).mock.calls;
+      const firstCall = calls[0];
+      const callback = firstCall[1] as (source: string, el: HTMLElement, ctx: any) => void;
+
+      const mockEl = document.createElement('div');
+      const mockCtx = {};
+      callback('test content', mockEl, mockCtx);
+
+      expect(renderBorder).toHaveBeenCalledWith(
+        'test content',
+        mockEl,
+        expect.any(Object),
+        mockApp,
+        mockCtx
+      );
     });
   });
 
