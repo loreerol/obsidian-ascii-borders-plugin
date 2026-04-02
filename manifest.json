@@ -6,5 +6,6 @@
 	"description": "Add customizable ASCII art borders around text in your notes using code blocks.",
 	"author": "Lore Cavalier",
 	"authorUrl": "https://github.com/loreerol",
+	"fundingUrl": "https://github.com/sponsors/loreerol",
 	"isDesktopOnly": false
 }
