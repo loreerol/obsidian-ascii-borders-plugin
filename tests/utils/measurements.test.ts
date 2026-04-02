@@ -217,6 +217,26 @@ describe('measurements', () => {
       // 100 / 10 = 10, minus BORDER_OVERHEAD (6) = 4
       expect(width).toBe(4);
     });
+
+    test('handles char width of 1 from cache fallback', () => {
+      // charWidthCache returns 1 when getBoundingClientRect returns 0
+      mockSpan.getBoundingClientRect = () => ({
+        width: 0,
+        height: 20,
+        top: 0,
+        left: 0,
+        bottom: 20,
+        right: 0,
+        x: 0,
+        y: 0,
+        toJSON: () => ({})
+      });
+
+      const width = calculateReadableWidth(mockContainer, mockSpan);
+
+      // charWidthCache will return 1 (not 0), so 800/1 = 800 - 6 = 794
+      expect(width).toBeGreaterThan(0);
+    });
   });
 
   describe('wrapLine', () => {

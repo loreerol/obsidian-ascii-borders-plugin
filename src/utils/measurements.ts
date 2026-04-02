@@ -22,6 +22,12 @@ export function calculateReadableWidth(
 
 	// Measure a single monospace character and cache it
 	const charWidth = getMonospaceCharWidth(container, measureSpan);
+
+	if (charWidth <= 0) {
+		console.warn('Character width is zero or negative, using fallback width');
+		return FALLBACK_WIDTH - BORDER_OVERHEAD;
+	}
+
 	const charsAvailable = Math.floor(widthPx / charWidth);
 
 	return Math.max(0, charsAvailable - BORDER_OVERHEAD);
