@@ -6,12 +6,12 @@ import { calculateReadableWidth } from './utils/measurements';
 
 export class SettingsTab extends PluginSettingTab {
 	plugin: AsciiBorders;
-	private updateTimeouts: Map<string, NodeJS.Timeout>;
+	private debounceTimeouts: Map<string, NodeJS.Timeout>;
 
 	constructor(app: App, plugin: AsciiBorders) {
 		super(app, plugin);
 		this.plugin = plugin;
-		this.updateTimeouts = new Map();
+		this.debounceTimeouts = new Map();
 	}
 
 	display(): void {
@@ -31,6 +31,27 @@ export class SettingsTab extends PluginSettingTab {
 		});
 	}
 
+	private async save(opts: { debounceKey?: string } = {}): Promise<void> {
+		const doSave = async () => {
+			await this.plugin.saveSettings();
+			document.querySelectorAll('.ascii-border-container').forEach(container => {
+				container.dispatchEvent(new Event('ascii-border-update'));
+			});
+		};
+
+		if (opts.debounceKey) {
+			const existing = this.debounceTimeouts.get(opts.debounceKey);
+			if (existing) clearTimeout(existing);
+			const id = setTimeout(async () => {
+				await doSave();
+				this.debounceTimeouts.delete(opts.debounceKey!);
+			}, 500);
+			this.debounceTimeouts.set(opts.debounceKey, id);
+		} else {
+			await doSave();
+		}
+	}
+
 	private addInstructions(container: HTMLElement): void {
 		const instructionsEl = container.createDiv({ cls: 'ascii-borders-instructions' });
 		instructionsEl.innerHTML = `
@@ -45,51 +66,21 @@ export class SettingsTab extends PluginSettingTab {
 		`;
 	}
 
-	private async saveAndRefresh(): Promise<void> {
-		await this.plugin.saveSettings();
-
-		// Dispatch custom event to all border containers
-		const borderContainers = document.querySelectorAll('.ascii-border-container');
-		borderContainers.forEach(container => {
-			container.dispatchEvent(new Event('ascii-border-update'));
-		});
-	}
-
-	private debouncedSaveAndRefresh(key: string, delay = 500): void {
-		// Clear existing timeout for this key
-		const existingTimeout = this.updateTimeouts.get(key);
-		if (existingTimeout) {
-			clearTimeout(existingTimeout);
-		}
-
-		// Set new timeout
-		const timeoutId = setTimeout(async () => {
-			await this.saveAndRefresh();
-			this.updateTimeouts.delete(key);
-		}, delay);
-
-		this.updateTimeouts.set(key, timeoutId);
-	}
-
 	private addNewBorderButton(container: HTMLElement): void {
 		new Setting(container)
 			.addButton(btn => btn
 				.setButtonText('Add Border')
 				.setCta()
-				.onClick(() => this.addBorder()))
+				.onClick(() => this.addBorder()));
 	}
 
 	private async addBorder(): Promise<void> {
 		const key = this.generateUniqueBorderName();
-		const newBorder = this.createDefaultBorder();
-
-		// Add new border at the top
 		this.plugin.settings.borders = {
-			[key]: newBorder,
+			[key]: this.createDefaultBorder(),
 			...this.plugin.settings.borders
 		};
-
-		await this.saveAndRefresh();
+		await this.save();
 		this.display();
 	}
 
@@ -133,19 +124,13 @@ export class SettingsTab extends PluginSettingTab {
 
 	private addBorderPreview(container: HTMLElement, config: BorderConfig): void {
 		const previewContainer = container.createEl('pre', { cls: 'border-preview' });
-
-		const measureSpan = container.createEl('span', {
-			cls: 'ascii-border-measure-span'
-		});
+		const measureSpan = container.createEl('span', { cls: 'ascii-border-measure-span' });
 
 		const updatePreview = () => {
 			try {
-				const sampleText = 'Sample Text';
-
 				const targetWidth = calculateReadableWidth(previewContainer, measureSpan);
-
 				const bordered = createBorder(
-					sampleText,
+					'Sample Text',
 					config.style,
 					(text) => {
 						measureSpan.textContent = text;
@@ -154,8 +139,7 @@ export class SettingsTab extends PluginSettingTab {
 					targetWidth,
 					config.centerText
 				);
-
-				previewContainer.textContent = bordered
+				previewContainer.textContent = bordered;
 			} catch (error) {
 				previewContainer.textContent = 'Error rendering preview';
 				console.error('Error rendering preview:', error);
@@ -186,7 +170,6 @@ export class SettingsTab extends PluginSettingTab {
 
 		if (!newKey || newKey === oldKey) return;
 
-
 		if (this.plugin.settings.borders[newKey]) {
 			new Notice(`A border with the name "${newKey}" already exists.`);
 			return;
@@ -195,21 +178,17 @@ export class SettingsTab extends PluginSettingTab {
 		// Preserve order of borders
 		const newBorders: Record<string, BorderConfig> = {};
 		for (const [key, config] of Object.entries(this.plugin.settings.borders)) {
-			if (key === oldKey) {
-				newBorders[newKey] = config;
-			} else {
-				newBorders[key] = config;
-			}
+			newBorders[key === oldKey ? newKey : key] = config;
 		}
 
 		this.plugin.settings.borders = newBorders;
-		await this.saveAndRefresh();
+		await this.save();
 		this.display();
 	}
 
 	private async deleteBorder(key: string): Promise<void> {
 		delete this.plugin.settings.borders[key];
-		await this.saveAndRefresh();
+		await this.save();
 		this.display();
 	}
 
@@ -222,9 +201,7 @@ export class SettingsTab extends PluginSettingTab {
 
 			// Update preview
 			this.updateBorderPreview(container);
-			
-			// Debounce the save and refresh
-			this.debouncedSaveAndRefresh(`${key}-${part}`);
+			this.save({ debounceKey: `${key}-${part}` });
 		};
 
 		new Setting(container)
@@ -285,7 +262,7 @@ export class SettingsTab extends PluginSettingTab {
 				.onChange(async (value) => {
 					config.centerText = value;
 					this.updateBorderPreview(container);
-					await this.saveAndRefresh();
+					await this.save();
 				}))
 			.addButton(btn => btn
 				.setButtonText('Delete')
