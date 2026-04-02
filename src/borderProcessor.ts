@@ -74,7 +74,12 @@ export function createBorder(
         wrapLine(line, targetWidth)
     );
 
-    const maxLineLength = Math.max(...lines.map(l => l.length));
+    // Handle empty content
+    if (lines.length === 0) {
+        lines.push('');
+    }
+
+    const maxLineLength = Math.max(...lines.map(l => l.length), 0);
     const width = Math.max(targetWidth, maxLineLength);
 
     // Measure total content area width in pixels for horizontal borders

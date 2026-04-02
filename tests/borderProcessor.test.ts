@@ -206,5 +206,23 @@ describe('borderProcessor', () => {
       // Should handle zero widths gracefully
       expect(result).toContain('Test');
     });
+
+    test('handles completely empty input', () => {
+      const result = createBorder('', simpleBorder, measureWidth, 10);
+
+      const lines = result.split('\n');
+      expect(lines.length).toBe(3); // top + empty content + bottom
+      expect(lines[0]).toContain('╔');
+      expect(lines[2]).toContain('╚');
+    });
+
+    test('handles text that results in empty lines array', () => {
+      // This shouldn't happen in practice but guard against it
+      const result = createBorder('\n\n', simpleBorder, measureWidth, 10);
+
+      expect(result).toContain('╔');
+      expect(result).toContain('╚');
+      expect(result).toBeTruthy();
+    });
   });
 });
