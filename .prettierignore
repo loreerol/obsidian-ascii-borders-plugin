@@ -1,0 +1,6 @@
+node_modules
+main.js
+*.json
+coverage
+dist
+build

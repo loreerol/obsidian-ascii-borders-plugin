@@ -11,7 +11,7 @@ describe('borderProcessor', () => {
     topLeft: '╔',
     topRight: '╗',
     bottomLeft: '╚',
-    bottomRight: '╝'
+    bottomRight: '╝',
   };
 
   const fancyBorder: BorderStyle = {
@@ -22,7 +22,7 @@ describe('borderProcessor', () => {
     topLeft: '╔',
     topRight: '╗',
     bottomLeft: '╚',
-    bottomRight: '╝'
+    bottomRight: '╝',
   };
 
   // Simple measureWidth that returns char count
@@ -131,7 +131,7 @@ describe('borderProcessor', () => {
 
       // All lines should be same length
       const topLength = lines[0].length;
-      expect(lines.every(line => line.length === topLength)).toBe(true);
+      expect(lines.every((line) => line.length === topLength)).toBe(true);
     });
 
     test('handles very small target width', () => {
@@ -169,7 +169,7 @@ describe('borderProcessor', () => {
         topLeft: '┌',
         topRight: '┐',
         bottomLeft: '└',
-        bottomRight: '┘'
+        bottomRight: '┘',
       };
 
       const result = createBorder('Test', emptyPatternBorder, measureWidth, 10);
@@ -188,7 +188,7 @@ describe('borderProcessor', () => {
         topLeft: '╔',
         topRight: '╗',
         bottomLeft: '╚',
-        bottomRight: '╝'
+        bottomRight: '╝',
       };
 
       // Very narrow width forces pattern to be wider than target

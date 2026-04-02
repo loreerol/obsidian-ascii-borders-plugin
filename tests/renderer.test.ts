@@ -4,11 +4,11 @@ import { BorderConfig } from '../src/utils/types';
 
 // Mock dependencies
 jest.mock('../src/borderProcessor', () => ({
-  createBorder: jest.fn((source: string) => `bordered: ${source}`)
+  createBorder: jest.fn((source: string) => `bordered: ${source}`),
 }));
 
 jest.mock('../src/utils/measurements', () => ({
-  calculateReadableWidth: jest.fn(() => 100)
+  calculateReadableWidth: jest.fn(() => 100),
 }));
 
 const { createBorder } = require('../src/borderProcessor');
@@ -34,9 +34,9 @@ describe('renderBorder', () => {
       topLeft: '╔',
       topRight: '╗',
       bottomLeft: '╚',
-      bottomRight: '╝'
+      bottomRight: '╝',
     },
-    centerText: false
+    centerText: false,
   };
 
   beforeEach(() => {
@@ -48,7 +48,7 @@ describe('renderBorder', () => {
       return {
         observe: jest.fn(),
         disconnect: jest.fn(),
-        unobserve: jest.fn()
+        unobserve: jest.fn(),
       };
     }) as any;
 
@@ -60,13 +60,13 @@ describe('renderBorder', () => {
 
     mockMeasureSpan = {
       textContent: '',
-      getBoundingClientRect: jest.fn(() => ({ width: 50 }))
+      getBoundingClientRect: jest.fn(() => ({ width: 50 })),
     };
 
     mockPre = {
       textContent: '',
       addEventListener: jest.fn(),
-      removeEventListener: jest.fn()
+      removeEventListener: jest.fn(),
     };
 
     mockContainer = {
@@ -78,40 +78,40 @@ describe('renderBorder', () => {
       createDiv: jest.fn(() => mockContainer),
       addEventListener: jest.fn(),
       removeEventListener: jest.fn(),
-      isConnected: true
+      isConnected: true,
     };
 
     mockEl = {
-      createDiv: jest.fn(() => mockContainer)
+      createDiv: jest.fn(() => mockContainer),
     };
 
     mockEditor = {
       getLine: jest.fn(() => '```'),
       setCursor: jest.fn(),
-      focus: jest.fn()
+      focus: jest.fn(),
     };
 
     mockView = {
       leaf: {
-        getViewState: jest.fn(() => ({ state: { mode: 'preview', source: true } }))
+        getViewState: jest.fn(() => ({ state: { mode: 'preview', source: true } })),
       },
       getMode: jest.fn(() => 'preview'),
       setState: jest.fn(),
-      editor: mockEditor
+      editor: mockEditor,
     };
 
     mockApp = {
       workspace: {
-        getActiveViewOfType: jest.fn(() => mockView)
-      }
+        getActiveViewOfType: jest.fn(() => mockView),
+      },
     };
 
     mockCtx = {
       getSectionInfo: jest.fn(() => ({
         lineStart: 0,
-        lineEnd: 2
+        lineEnd: 2,
       })),
-      addChild: jest.fn()
+      addChild: jest.fn(),
     };
   });
 
@@ -128,7 +128,7 @@ describe('renderBorder', () => {
   test('creates measure span', () => {
     renderBorder('test', mockEl, mockConfig, mockApp, mockCtx);
     expect(mockContainer.createEl).toHaveBeenCalledWith('span', {
-      cls: 'ascii-border-measure-span'
+      cls: 'ascii-border-measure-span',
     });
   });
 
@@ -189,17 +189,14 @@ describe('renderBorder', () => {
 
     await clickHandler();
 
-    expect(mockView.setState).toHaveBeenCalledWith(
-      { mode: 'source' },
-      { history: false }
-    );
+    expect(mockView.setState).toHaveBeenCalledWith({ mode: 'source' }, { history: false });
     expect(mockEditor.setCursor).toHaveBeenCalled();
     expect(mockEditor.focus).toHaveBeenCalled();
   });
 
   test('does not edit in reading mode', async () => {
     mockView.leaf.getViewState.mockReturnValue({
-      state: { mode: 'preview', source: false }
+      state: { mode: 'preview', source: false },
     });
 
     renderBorder('test', mockEl, mockConfig, mockApp, mockCtx);
@@ -269,7 +266,7 @@ describe('renderBorder', () => {
 
     expect(mockEditor.setCursor).toHaveBeenCalledWith({
       line: 2,
-      ch: 13 // '```border-simple'.length - 3
+      ch: 13, // '```border-simple'.length - 3
     });
   });
 
@@ -310,7 +307,10 @@ describe('renderBorder', () => {
     cleanup.onunload();
 
     expect(mockPre.removeEventListener).toHaveBeenCalledWith('click', expect.any(Function));
-    expect(mockContainer.removeEventListener).toHaveBeenCalledWith('ascii-border-update', expect.any(Function));
+    expect(mockContainer.removeEventListener).toHaveBeenCalledWith(
+      'ascii-border-update',
+      expect.any(Function)
+    );
   });
 
   test('cleanup disconnects observer', () => {
@@ -371,10 +371,7 @@ describe('renderBorder', () => {
     renderBorder('test', mockEl, mockConfig, mockApp, mockCtx);
 
     expect(mockPre.textContent).toBe('Error rendering border');
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      'Failed to render border:',
-      expect.any(Error)
-    );
+    expect(consoleErrorSpy).toHaveBeenCalledWith('Failed to render border:', expect.any(Error));
 
     consoleErrorSpy.mockRestore();
   });

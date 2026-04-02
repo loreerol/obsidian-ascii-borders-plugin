@@ -12,7 +12,7 @@ describe('charWidthCache', () => {
       return {
         fontFamily: htmlElement.style.fontFamily || 'monospace',
         fontSize: htmlElement.style.fontSize || '16px',
-        lineHeight: htmlElement.style.lineHeight || '1.5'
+        lineHeight: htmlElement.style.lineHeight || '1.5',
       } as CSSStyleDeclaration;
     }) as typeof window.getComputedStyle;
   });
@@ -40,7 +40,7 @@ describe('charWidthCache', () => {
         right: 10,
         x: 0,
         y: 0,
-        toJSON: () => ({})
+        toJSON: () => ({}),
       };
     };
 
@@ -70,7 +70,7 @@ describe('charWidthCache', () => {
         right: 11,
         x: 0,
         y: 0,
-        toJSON: () => ({})
+        toJSON: () => ({}),
       };
     };
 
@@ -100,7 +100,7 @@ describe('charWidthCache', () => {
         right: measureCount === 1 ? 12 : 24,
         x: 0,
         y: 0,
-        toJSON: () => ({})
+        toJSON: () => ({}),
       };
     };
 
@@ -133,7 +133,7 @@ describe('charWidthCache', () => {
         right: measureCount === 1 ? 13 : 26,
         x: 0,
         y: 0,
-        toJSON: () => ({})
+        toJSON: () => ({}),
       };
     };
 
@@ -166,7 +166,7 @@ describe('charWidthCache', () => {
         right: measureCount === 1 ? 14 : 28,
         x: 0,
         y: 0,
-        toJSON: () => ({})
+        toJSON: () => ({}),
       };
     };
 
@@ -208,7 +208,7 @@ describe('charWidthCache', () => {
         right: 15 + measureCount,
         x: 0,
         y: 0,
-        toJSON: () => ({})
+        toJSON: () => ({}),
       };
     };
 
@@ -236,7 +236,7 @@ describe('charWidthCache', () => {
       right: 0,
       x: 0,
       y: 0,
-      toJSON: () => ({})
+      toJSON: () => ({}),
     });
 
     const width = getMonospaceCharWidth(freshContainer, freshSpan);
@@ -249,7 +249,7 @@ describe('charWidthCache', () => {
     const containers = [
       { family: 'test-font-9', size: '23px', lineHeight: '2.2' },
       { family: 'test-font-10', size: '24px', lineHeight: '2.3' },
-      { family: 'test-font-11', size: '25px', lineHeight: '2.4' }
+      { family: 'test-font-11', size: '25px', lineHeight: '2.4' },
     ];
 
     const widths: number[] = [];
@@ -271,7 +271,7 @@ describe('charWidthCache', () => {
         right: 20 + index * 2,
         x: 0,
         y: 0,
-        toJSON: () => ({})
+        toJSON: () => ({}),
       });
 
       widths.push(getMonospaceCharWidth(container, span));
@@ -290,7 +290,7 @@ describe('charWidthCache', () => {
     const span = document.createElement('span');
 
     // Same font properties
-    [container1, container2].forEach(c => {
+    [container1, container2].forEach((c) => {
       c.style.fontFamily = 'test-font-12';
       c.style.fontSize = '26px';
       c.style.lineHeight = '2.5';
@@ -308,7 +308,7 @@ describe('charWidthCache', () => {
         right: 16,
         x: 0,
         y: 0,
-        toJSON: () => ({})
+        toJSON: () => ({}),
       };
     };
 

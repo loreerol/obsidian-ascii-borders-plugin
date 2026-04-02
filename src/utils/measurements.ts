@@ -1,54 +1,50 @@
 import { getMonospaceCharWidth } from 'src/charWidthCache';
-import {
-	BORDER_OVERHEAD,
-	FALLBACK_WIDTH
-} from './constants';
+import { BORDER_OVERHEAD, FALLBACK_WIDTH } from './constants';
 
 // Measure the pixel width of a text string when rendered in monospace font
 export function measureText(text: string, span: HTMLSpanElement): number {
-	span.textContent = text;
-	return span.getBoundingClientRect().width;
+  span.textContent = text;
+  return span.getBoundingClientRect().width;
 }
 
 export function calculateReadableWidth(
-	container: HTMLElement,
-	measureSpan: HTMLSpanElement
+  container: HTMLElement,
+  measureSpan: HTMLSpanElement
 ): number {
-	const widthPx = container.getBoundingClientRect().width;
+  const widthPx = container.getBoundingClientRect().width;
 
-	if (widthPx <= 0) {
-		return FALLBACK_WIDTH - BORDER_OVERHEAD;
-	}
+  if (widthPx <= 0) {
+    return FALLBACK_WIDTH - BORDER_OVERHEAD;
+  }
 
-	// Measure a single monospace character and cache it
-	const charWidth = getMonospaceCharWidth(container, measureSpan);
+  // Measure a single monospace character and cache it
+  const charWidth = getMonospaceCharWidth(container, measureSpan);
 
-	if (charWidth <= 0) {
-		console.warn('Character width is zero or negative, using fallback width');
-		return FALLBACK_WIDTH - BORDER_OVERHEAD;
-	}
+  if (charWidth <= 0) {
+    console.warn('Character width is zero or negative, using fallback width');
+    return FALLBACK_WIDTH - BORDER_OVERHEAD;
+  }
 
-	const charsAvailable = Math.floor(widthPx / charWidth);
+  const charsAvailable = Math.floor(widthPx / charWidth);
 
-	return Math.max(0, charsAvailable - BORDER_OVERHEAD);
+  return Math.max(0, charsAvailable - BORDER_OVERHEAD);
 }
 
 export function wrapLine(line: string, maxWidth: number): string[] {
-    // Use Array.from to properly handle surrogate pairs (e.g., Egyptian hieroglyphs)
-    const chars = Array.from(line);
-    
-    if (chars.length <= maxWidth) {
-        return [line];
-    }
+  // Use Array.from to properly handle surrogate pairs (e.g., Egyptian hieroglyphs)
+  const chars = Array.from(line);
 
-    const wrapped: string[] = [];
-    let start = 0;
+  if (chars.length <= maxWidth) {
+    return [line];
+  }
 
-    while (start < chars.length) {
-        wrapped.push(chars.slice(start, start + maxWidth).join(''));
-        start += maxWidth;
-    }
+  const wrapped: string[] = [];
+  let start = 0;
 
-    return wrapped;
+  while (start < chars.length) {
+    wrapped.push(chars.slice(start, start + maxWidth).join(''));
+    start += maxWidth;
+  }
+
+  return wrapped;
 }
-

@@ -32,7 +32,7 @@ export class PluginSettingTab {
       empty: jest.fn(),
       createDiv: jest.fn(),
       createEl: jest.fn(),
-      querySelector: jest.fn()
+      querySelector: jest.fn(),
     };
   }
 
@@ -72,10 +72,10 @@ export class Setting {
       setButtonText: jest.fn().mockReturnThis(),
       setCta: jest.fn().mockReturnThis(),
       setWarning: jest.fn().mockReturnThis(),
-      onClick: jest.fn(function(this: any, handler: any) {
+      onClick: jest.fn(function (this: any, handler: any) {
         this._clickHandler = handler;
         return this;
-      })
+      }),
     };
     cb(button);
     this.buttons.push(button);
@@ -87,13 +87,13 @@ export class Setting {
       setValue: jest.fn().mockReturnThis(),
       getValue: jest.fn(() => ''),
       setPlaceholder: jest.fn().mockReturnThis(),
-      onChange: jest.fn(function(this: any, handler: any) {
+      onChange: jest.fn(function (this: any, handler: any) {
         this._changeHandler = handler;
         return this;
       }),
       inputEl: {
-        addEventListener: jest.fn()
-      }
+        addEventListener: jest.fn(),
+      },
     };
     cb(text);
     this.texts.push(text);
@@ -103,10 +103,10 @@ export class Setting {
   addToggle(cb: (toggle: any) => any): this {
     const toggle = {
       setValue: jest.fn().mockReturnThis(),
-      onChange: jest.fn(function(this: any, handler: any) {
+      onChange: jest.fn(function (this: any, handler: any) {
         this._changeHandler = handler;
         return this;
-      })
+      }),
     };
     cb(toggle);
     this.toggles.push(toggle);

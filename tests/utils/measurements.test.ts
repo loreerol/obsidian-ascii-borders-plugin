@@ -21,16 +21,17 @@ describe('measurements', () => {
       right: 800,
       x: 0,
       y: 0,
-      toJSON: () => ({})
+      toJSON: () => ({}),
     });
 
     // Mock computed style
     Object.defineProperty(mockContainer, 'computedStyleMap', {
-      value: () => new Map([
-        ['font-family', 'monospace'],
-        ['font-size', '16px'],
-        ['line-height', '1.5']
-      ])
+      value: () =>
+        new Map([
+          ['font-family', 'monospace'],
+          ['font-size', '16px'],
+          ['line-height', '1.5'],
+        ]),
     });
   });
 
@@ -45,7 +46,7 @@ describe('measurements', () => {
         right: 100,
         x: 0,
         y: 0,
-        toJSON: () => ({})
+        toJSON: () => ({}),
       });
 
       const width = measureText('Hello', mockSpan);
@@ -63,7 +64,7 @@ describe('measurements', () => {
         right: 0,
         x: 0,
         y: 0,
-        toJSON: () => ({})
+        toJSON: () => ({}),
       });
 
       const width = measureText('', mockSpan);
@@ -82,7 +83,7 @@ describe('measurements', () => {
         right: 10,
         x: 0,
         y: 0,
-        toJSON: () => ({})
+        toJSON: () => ({}),
       });
 
       const width = calculateReadableWidth(mockContainer, mockSpan);
@@ -101,7 +102,7 @@ describe('measurements', () => {
         right: 0,
         x: 0,
         y: 0,
-        toJSON: () => ({})
+        toJSON: () => ({}),
       });
 
       const width = calculateReadableWidth(mockContainer, mockSpan);
@@ -118,7 +119,7 @@ describe('measurements', () => {
         right: 0,
         x: 0,
         y: 0,
-        toJSON: () => ({})
+        toJSON: () => ({}),
       });
 
       const width = calculateReadableWidth(mockContainer, mockSpan);
@@ -135,7 +136,7 @@ describe('measurements', () => {
         right: 50,
         x: 0,
         y: 0,
-        toJSON: () => ({})
+        toJSON: () => ({}),
       });
 
       mockSpan.getBoundingClientRect = () => ({
@@ -147,7 +148,7 @@ describe('measurements', () => {
         right: 10,
         x: 0,
         y: 0,
-        toJSON: () => ({})
+        toJSON: () => ({}),
       });
 
       const width = calculateReadableWidth(mockContainer, mockSpan);
@@ -166,7 +167,7 @@ describe('measurements', () => {
         right: 2000,
         x: 0,
         y: 0,
-        toJSON: () => ({})
+        toJSON: () => ({}),
       });
 
       mockSpan.getBoundingClientRect = () => ({
@@ -178,7 +179,7 @@ describe('measurements', () => {
         right: 10,
         x: 0,
         y: 0,
-        toJSON: () => ({})
+        toJSON: () => ({}),
       });
 
       const width = calculateReadableWidth(mockContainer, mockSpan);
@@ -197,7 +198,7 @@ describe('measurements', () => {
         right: 100,
         x: 0,
         y: 0,
-        toJSON: () => ({})
+        toJSON: () => ({}),
       });
 
       mockSpan.getBoundingClientRect = () => ({
@@ -209,7 +210,7 @@ describe('measurements', () => {
         right: 10,
         x: 0,
         y: 0,
-        toJSON: () => ({})
+        toJSON: () => ({}),
       });
 
       const width = calculateReadableWidth(mockContainer, mockSpan);
@@ -229,7 +230,7 @@ describe('measurements', () => {
         right: 0,
         x: 0,
         y: 0,
-        toJSON: () => ({})
+        toJSON: () => ({}),
       });
 
       const width = calculateReadableWidth(mockContainer, mockSpan);
@@ -282,7 +283,7 @@ describe('measurements', () => {
 
       expect(result).toEqual(['𓀀𓀁𓀂', '𓀃𓀄']);
       // Verify no broken surrogate pairs
-      expect(result.every(line => !line.includes('\uFFFD'))).toBe(true);
+      expect(result.every((line) => !line.includes('\uFFFD'))).toBe(true);
     });
 
     test('handles emoji with ZWJ correctly', () => {
@@ -291,7 +292,7 @@ describe('measurements', () => {
 
       // Each emoji should be treated as a single unit
       expect(result.length).toBeGreaterThan(0);
-      expect(result.every(line => line.length > 0)).toBe(true);
+      expect(result.every((line) => line.length > 0)).toBe(true);
     });
 
     test('handles very long text', () => {
@@ -299,7 +300,7 @@ describe('measurements', () => {
       const result = wrapLine(longText, 50);
 
       expect(result.length).toBe(20); // 1000 / 50
-      expect(result.every(line => line.length === 50)).toBe(true);
+      expect(result.every((line) => line.length === 50)).toBe(true);
     });
 
     test('handles whitespace-only text', () => {

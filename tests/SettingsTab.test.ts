@@ -5,11 +5,11 @@ import { BorderConfig } from '../src/utils/types';
 
 // Mock dependencies
 jest.mock('../src/borderProcessor', () => ({
-  createBorder: jest.fn(() => 'bordered preview')
+  createBorder: jest.fn(() => 'bordered preview'),
 }));
 
 jest.mock('../src/utils/measurements', () => ({
-  calculateReadableWidth: jest.fn(() => 100)
+  calculateReadableWidth: jest.fn(() => 100),
 }));
 
 const { createBorder } = require('../src/borderProcessor');
@@ -27,7 +27,7 @@ describe('SettingsTab', () => {
 
     mockPreview = {
       textContent: '',
-      getBoundingClientRect: jest.fn(() => ({ width: 100 }))
+      getBoundingClientRect: jest.fn(() => ({ width: 100 })),
     };
 
     mockContainer = {
@@ -39,31 +39,31 @@ describe('SettingsTab', () => {
           if (tag === 'pre') return mockPreview;
           return {
             textContent: '',
-            getBoundingClientRect: jest.fn(() => ({ width: 50 }))
+            getBoundingClientRect: jest.fn(() => ({ width: 50 })),
           };
         }),
         querySelector: jest.fn((selector: string) => {
           if (selector === '.border-preview') return mockPreview;
           return null;
-        })
+        }),
       }),
       createEl: jest.fn((tag: string) => {
         if (tag === 'pre') return mockPreview;
         return {
           textContent: '',
-          getBoundingClientRect: jest.fn(() => ({ width: 50 }))
+          getBoundingClientRect: jest.fn(() => ({ width: 50 })),
         };
       }),
-      querySelector: jest.fn()
+      querySelector: jest.fn(),
     };
 
     mockApp = {
-      workspace: {}
+      workspace: {},
     };
 
     mockPlugin = {
       settings: JSON.parse(JSON.stringify(DEFAULT_SETTINGS)),
-      saveSettings: jest.fn().mockResolvedValue(undefined)
+      saveSettings: jest.fn(() => Promise.resolve()) as any,
     };
 
     // Mock document.querySelectorAll
@@ -124,7 +124,7 @@ describe('SettingsTab', () => {
     test('dispatches update events to all border containers', async () => {
       const mockDispatch = jest.fn();
       const mockContainerEl = {
-        dispatchEvent: mockDispatch
+        dispatchEvent: mockDispatch,
       };
 
       global.document.querySelectorAll = jest.fn(() => [mockContainerEl] as any) as any;
@@ -132,7 +132,7 @@ describe('SettingsTab', () => {
       await (settingsTab as any).save();
 
       expect(mockDispatch).toHaveBeenCalledWith(expect.any(Event));
-      expect(mockDispatch.mock.calls[0][0].type).toBe('ascii-border-update');
+      expect((mockDispatch.mock.calls[0][0] as Event).type).toBe('ascii-border-update');
     });
 
     test('debounces save when debounceKey provided', async () => {
@@ -256,7 +256,7 @@ describe('SettingsTab', () => {
     beforeEach(() => {
       mockPlugin.settings.borders = {
         'old-name': (settingsTab as any).createDefaultBorder(),
-        'other': (settingsTab as any).createDefaultBorder()
+        other: (settingsTab as any).createDefaultBorder(),
       };
     });
 
@@ -311,9 +311,9 @@ describe('SettingsTab', () => {
 
     test('preserves order of borders', async () => {
       mockPlugin.settings.borders = {
-        'first': (settingsTab as any).createDefaultBorder(),
-        'middle': (settingsTab as any).createDefaultBorder(),
-        'last': (settingsTab as any).createDefaultBorder()
+        first: (settingsTab as any).createDefaultBorder(),
+        middle: (settingsTab as any).createDefaultBorder(),
+        last: (settingsTab as any).createDefaultBorder(),
       };
 
       await (settingsTab as any).renameBorder('middle', 'renamed');
@@ -427,7 +427,7 @@ describe('SettingsTab', () => {
 
     test('handles missing preview element', () => {
       const container = {
-        querySelector: jest.fn(() => null)
+        querySelector: jest.fn(() => null),
       };
 
       expect(() => {
@@ -437,11 +437,11 @@ describe('SettingsTab', () => {
 
     test('handles preview without update function', () => {
       const previewWithoutUpdate = {
-        _updatePreview: undefined
+        _updatePreview: undefined,
       };
 
       const container = {
-        querySelector: jest.fn(() => previewWithoutUpdate)
+        querySelector: jest.fn(() => previewWithoutUpdate),
       };
 
       expect(() => {
