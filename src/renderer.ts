@@ -4,10 +4,10 @@ import { calculateReadableWidth } from './utils/measurements';
 import { App, MarkdownPostProcessorContext, MarkdownView, MarkdownRenderChild } from 'obsidian';
 
 export function renderBorder(
-    source: string, 
-    el: HTMLElement, 
-    config: BorderConfig, 
-    app: App, 
+    source: string,
+    el: HTMLElement,
+    config: BorderConfig,
+    app: App,
     ctx: MarkdownPostProcessorContext
 ): void {
     const container = el.createDiv({ cls: 'ascii-border-container' });
@@ -22,18 +22,23 @@ export function renderBorder(
     let resizeObserver: ResizeObserver | null = null;
 
     const render = () => {
-        const targetWidth = calculateReadableWidth(pre, measureSpan);
-        const bordered = createBorder(
-            source,
-            config.style,
-            (text) => {
-                measureSpan.textContent = text;
-                return measureSpan.getBoundingClientRect().width;
-            },
-            targetWidth,
-            config.centerText
-        );
-        pre.textContent = bordered;
+        try {
+            const targetWidth = calculateReadableWidth(pre, measureSpan);
+            const bordered = createBorder(
+                source,
+                config.style,
+                (text) => {
+                    measureSpan.textContent = text;
+                    return measureSpan.getBoundingClientRect().width;
+                },
+                targetWidth,
+                config.centerText
+            );
+            pre.textContent = bordered;
+        } catch (error) {
+            pre.textContent = 'Error rendering border';
+            console.error('Failed to render border:', error);
+        }
     };
 
     const scheduleRender = () => {

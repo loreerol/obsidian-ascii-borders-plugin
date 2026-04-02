@@ -23,7 +23,7 @@ describe('renderBorder', () => {
   let mockCtx: any;
   let mockView: any;
   let mockEditor: any;
-  let resizeObserverCallback: Function;
+  let resizeObserverCallback: any;
 
   const mockConfig: BorderConfig = {
     style: {
@@ -53,7 +53,7 @@ describe('renderBorder', () => {
     }) as any;
 
     // Mock requestAnimationFrame
-    global.requestAnimationFrame = jest.fn((cb) => {
+    global.requestAnimationFrame = jest.fn((cb: CallableFunction) => {
       cb();
       return 0;
     }) as any;
@@ -152,7 +152,7 @@ describe('renderBorder', () => {
   test('sets up ResizeObserver', () => {
     renderBorder('test', mockEl, mockConfig, mockApp, mockCtx);
 
-    const observer = (global.ResizeObserver as jest.Mock).mock.results[0].value;
+    const observer = (global.ResizeObserver as jest.Mock).mock.results[0].value as any;
     expect(observer.observe).toHaveBeenCalledWith(mockContainer);
   });
 
@@ -172,7 +172,7 @@ describe('renderBorder', () => {
   test('disconnects observer when container disconnected', () => {
     renderBorder('test', mockEl, mockConfig, mockApp, mockCtx);
 
-    const observer = (global.ResizeObserver as jest.Mock).mock.results[0].value;
+    const observer = (global.ResizeObserver as jest.Mock).mock.results[0].value as any;
     mockContainer.isConnected = false;
 
     resizeObserverCallback();
@@ -316,7 +316,7 @@ describe('renderBorder', () => {
   test('cleanup disconnects observer', () => {
     renderBorder('test', mockEl, mockConfig, mockApp, mockCtx);
 
-    const observer = (global.ResizeObserver as jest.Mock).mock.results[0].value;
+    const observer = (global.ResizeObserver as jest.Mock).mock.results[0].value as any;
     const cleanup = mockCtx.addChild.mock.calls[0][0];
 
     cleanup.onunload();
@@ -360,5 +360,45 @@ describe('renderBorder', () => {
 
     // Should only render once due to requestAnimationFrame batching
     expect(global.requestAnimationFrame).toHaveBeenCalled();
+  });
+
+  test('handles render errors gracefully', () => {
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    createBorder.mockImplementationOnce(() => {
+      throw new Error('Render error');
+    });
+
+    renderBorder('test', mockEl, mockConfig, mockApp, mockCtx);
+
+    expect(mockPre.textContent).toBe('Error rendering border');
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      'Failed to render border:',
+      expect.any(Error)
+    );
+
+    consoleErrorSpy.mockRestore();
+  });
+
+  test('continues to work after error recovery', () => {
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    // First render fails
+    createBorder.mockImplementationOnce(() => {
+      throw new Error('Render error');
+    });
+
+    renderBorder('test', mockEl, mockConfig, mockApp, mockCtx);
+    expect(mockPre.textContent).toBe('Error rendering border');
+
+    // Reset mock to succeed
+    createBorder.mockReturnValue('bordered: test');
+    mockPre.textContent = '';
+
+    // Trigger re-render via resize
+    resizeObserverCallback();
+
+    expect(mockPre.textContent).toBe('bordered: test');
+
+    consoleErrorSpy.mockRestore();
   });
 });
