@@ -14,4 +14,4 @@
 - Click anywhere within border while in editing view to edit contents
 - Support for wide characters and complex Unicode (including Egyptian hieroglyphs)
 - Character width caching for performance
-- Mobile device support
+- Mobile device compatible

@@ -19,7 +19,7 @@
 		"*.ts": "prettier --write"
 	},
 	"keywords": [],
-	"author": "",
+	"author": "loreerol",
 	"license": "MIT",
 	"devDependencies": {
 		"@jest/globals": "^29.7.0",
