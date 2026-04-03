@@ -16,7 +16,7 @@
 		"check:versions": "ts-node scripts/check-versions.ts"
 	},
 	"lint-staged": {
-		"*.ts": "prettier --write"
+		"*": "prettier --write --ignore-unknown"
 	},
 	"keywords": [],
 	"author": "loreerol",

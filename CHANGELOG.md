@@ -3,6 +3,7 @@
 ## [1.0.0] - 2026-04-02
 
 ### Added
+
 - Initial release
 - ASCII art borders around text using code blocks (```border-<name>)
 - 6 pre-built border styles: double, single, rounded, heart, ocean, snail

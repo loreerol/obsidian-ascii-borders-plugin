@@ -2,7 +2,6 @@
 
 ![When writing notes on paper as a student I would draw borders around sections of text in my notes. Perhaps you did as well!Sometimes different borders were used to convey semantic meaning, such as double lines around important information, and squiggles around side thoughts. If class was particularly boring, my borders might start incorporating doodles and elaborate designs. I still take a lot of notes. Well organized notes with a lot of important information. Ugly plain notes. This plugin is the cure for bland notes that spark no joy.](assets/description.png)
 
-
 ## Features
 
 - ASCII art borders around text using code blocks
@@ -18,6 +17,7 @@
 - Mobile device support
 
 ## Usage
+
 Create a code block with `border-` followed by the style name.
 Default syles include border-double, border-single, border-pillar, border-heart, border-ocean, border-snail.
 
@@ -28,8 +28,9 @@ Create a code block with `border-` followed by the style name:
 Your text here
 ```
 ````
+
 Click outside of the code block to see the border.
-Click the code block to go back to content editing mode. 
+Click the code block to go back to content editing mode.
 
 ## Settings
 
@@ -49,17 +50,20 @@ Access plugin settings via **Settings → Community Plugins → ASCII Borders**.
 Each border has 8 customizable components:
 
 **Top & Bottom** - Repeating horizontal patterns
+
 - Accepts any length string (e.g., `═`, `══✧══`, `~*~`)
 - Pattern repeats to fill width
 - Blank spaces allowed
 - Supports Unicode including emojis and hieroglyphs
 
 **Sides** - Left and right edges
+
 - Single character only (e.g., `║`, `|`, `│`, `*`)
 - Blank spaces allowed
 - Supports Unicode including emojis and hieroglyphs
 
 **Corners** - Four corner characters
+
 - Top-left, top-right, bottom-left, bottom-right
 - Single character only
 - Blank spaces allowed
@@ -108,24 +112,31 @@ Each border has 8 customizable components:
 | Note: Obsidian must be reloaded after each rebuild to reflect changes. I recommend using a separate test vault to avoid any risk to your main vault during development.
 
 ### Troubleshooting
+
 #### Border not rendering correctly
+
 Check for unintentional whitespace in your border definition.
 
 #### Deleted or renamed borders still appearing
+
 These will remain active until Obsidian is reloaded.
 
 #### General loading/rendering issues
+
 Try clicking inside of the border, and then outside of the border.
 If that does not work, try reloading Obsidian: press **Ctrl/Cmd+P**, type **Reload**, and select **Reload app without saving**.
 
 #### Border sides not aligning
+
 Character width measurement is imprecise by nature. Add or remove characters manually until the alignment looks right.
 
 #### Reporting Issues
+
 If you run into a bug, please open an issue. Before doing so, check the Obsidian console for any relevant error messages — open it via **Settings** → **About** → **Open DevTools** (or **Ctrl/Cmd+Shift+I**). Include anything useful in the issue report.
 I'll address issues as quickly as I can. PRs are also welcome.
 
 ## Images
+
 ### Default Borders:
 
 ![default borders](assets/defaults.png)
