@@ -2,7 +2,7 @@ import { describe, expect, test, jest, beforeEach } from '@jest/globals';
 import AsciiBorders from '../src/main';
 import { DEFAULT_BORDERS } from '../src/utils/defaults';
 
-jest.mock('../src/renderer', () => ({
+jest.mock('../src/borders/renderer', () => ({
   renderBorder: jest.fn(),
 }));
 
@@ -59,7 +59,7 @@ describe('AsciiBorders Plugin', () => {
     });
 
     test('registers callback that calls renderBorder', async () => {
-      const { renderBorder } = require('../src/renderer');
+      const { renderBorder } = require('../src/borders/renderer');
       plugin.loadData = jest.fn(() => Promise.resolve({})) as any;
       await plugin.onload();
 
@@ -122,24 +122,26 @@ describe('AsciiBorders Plugin', () => {
     });
 
     test('uses defaults when loadData throws error', async () => {
-      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
       plugin.loadData = jest.fn(() => Promise.reject(new Error('Corrupted data'))) as any;
 
       await plugin.loadSettings();
 
       expect(plugin.settings).toEqual(DEFAULT_BORDERS);
-      expect(consoleWarnSpy).toHaveBeenCalledWith(
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
         'Failed to load settings, using defaults:',
         expect.any(Error)
       );
 
-      consoleWarnSpy.mockRestore();
+      consoleErrorSpy.mockRestore();
     });
   });
 
   describe('saveSettings', () => {
-    beforeEach(() => {
+    beforeEach(async () => {
       plugin.settings = JSON.parse(JSON.stringify(DEFAULT_BORDERS));
+      plugin.loadData = jest.fn(() => Promise.resolve({})) as any;
+      await plugin.onload();
     });
 
     test('saves settings data', async () => {
@@ -216,16 +218,16 @@ describe('AsciiBorders Plugin', () => {
     });
   });
 
-  describe('registerBorderProcessors', () => {
+  describe('borderRegistry', () => {
     test('tracks registered borders', async () => {
       plugin.loadData = jest.fn(() => Promise.resolve({})) as any;
       await plugin.onload();
 
-      const registeredBorders = (plugin as any).registeredBorders;
+      const borderRegistry = (plugin as any).borderRegistry;
       const borderNames = Object.keys(DEFAULT_BORDERS.borders);
 
       borderNames.forEach((name) => {
-        expect(registeredBorders.has(name)).toBe(true);
+        expect(borderRegistry.hasRegistered(name)).toBe(true);
       });
     });
 
@@ -237,7 +239,8 @@ describe('AsciiBorders Plugin', () => {
         .length;
 
       // Call registerBorderProcessors again
-      (plugin as any).registerBorderProcessors();
+      const borderRegistry = (plugin as any).borderRegistry;
+      borderRegistry.registerBorderProcessors(plugin.settings);
 
       // Should not register again
       expect(plugin.registerMarkdownCodeBlockProcessor).toHaveBeenCalledTimes(initialCount);

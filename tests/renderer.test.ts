@@ -1,9 +1,9 @@
 import { describe, expect, test, jest, beforeEach } from '@jest/globals';
-import { renderBorder } from '../src/renderer';
+import { renderBorder } from '../src/borders/renderer';
 import { BorderConfig } from '../src/utils/types';
 
 // Mock dependencies
-jest.mock('../src/borderProcessor', () => ({
+jest.mock('../src/borders/processor', () => ({
   createBorder: jest.fn((source: string) => `bordered: ${source}`),
 }));
 
@@ -11,7 +11,7 @@ jest.mock('../src/utils/math', () => ({
   calculateReadableWidth: jest.fn(() => 100),
 }));
 
-const { createBorder } = require('../src/borderProcessor');
+const { createBorder } = require('../src/borders/processor');
 
 describe('renderBorder', () => {
   let mockEl: any;

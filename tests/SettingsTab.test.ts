@@ -4,7 +4,7 @@ import { DEFAULT_BORDERS } from '../src/utils/defaults';
 import { BorderConfig } from '../src/utils/types';
 
 // Mock dependencies
-jest.mock('../src/borderProcessor', () => ({
+jest.mock('../src/borders/processor', () => ({
   createBorder: jest.fn(() => 'bordered preview'),
 }));
 
@@ -12,7 +12,7 @@ jest.mock('../src/utils/math', () => ({
   calculateReadableWidth: jest.fn(() => 100),
 }));
 
-const { createBorder } = require('../src/borderProcessor');
+const { createBorder } = require('../src/borders/processor');
 
 describe('SettingsTab', () => {
   let settingsTab: SettingsTab;
@@ -28,6 +28,7 @@ describe('SettingsTab', () => {
     mockPreview = {
       textContent: '',
       getBoundingClientRect: jest.fn(() => ({ width: 100 })),
+      appendChild: jest.fn(),
       createEl: jest.fn((tag: string) => ({
         textContent: '',
         getBoundingClientRect: jest.fn(() => ({ width: 50 })),
@@ -105,9 +106,19 @@ describe('SettingsTab', () => {
 
     test('adds instructions', () => {
       settingsTab.display();
-      const instructionsDiv = mockContainer.createDiv.mock.results[0].value;
-      expect(instructionsDiv.innerHTML).toContain('Managing Borders');
-      expect(instructionsDiv.innerHTML).toContain('border-&lt;name&gt;');
+      // Instructions now create a border preview, not HTML content
+      expect(mockContainer.createEl).toHaveBeenCalledWith('pre', { cls: 'border-preview' });
+    });
+
+    test('instructions render callback creates border', () => {
+      (settingsTab as any).addInstructions(mockContainer);
+
+      jest.advanceTimersByTime(1);
+
+      // Should call createBorder for instructions
+      expect(createBorder).toHaveBeenCalled();
+      const firstCall = createBorder.mock.calls[0];
+      expect(firstCall[0]).toContain('Hit Copy Code Block');
     });
 
     test('renders all borders from settings', () => {
@@ -175,6 +186,30 @@ describe('SettingsTab', () => {
 
       expect((settingsTab as any).debounceTimeouts.has('test-key')).toBe(true);
       expect((settingsTab as any).debounceTimeouts.get('test-key')).toBeDefined();
+    });
+  });
+
+  describe('hide', () => {
+    test('clears all pending debounce timeouts', () => {
+      (settingsTab as any).save({ debounceKey: 'key1' });
+      (settingsTab as any).save({ debounceKey: 'key2' });
+
+      expect((settingsTab as any).debounceTimeouts.size).toBe(2);
+
+      settingsTab.hide();
+
+      expect((settingsTab as any).debounceTimeouts.size).toBe(0);
+    });
+
+    test('prevents pending saves from executing after hide', async () => {
+      (settingsTab as any).save({ debounceKey: 'test' });
+
+      settingsTab.hide();
+
+      jest.advanceTimersByTime(500);
+
+      // Save should not execute because timeout was cleared
+      expect(mockPlugin.saveSettings).not.toHaveBeenCalled();
     });
   });
 
@@ -366,15 +401,6 @@ describe('SettingsTab', () => {
       expect(container.createEl).toHaveBeenCalledWith('pre', { cls: 'border-preview' });
     });
 
-    test('creates measure span', () => {
-      const container = mockContainer.createDiv();
-      const config = (settingsTab as any).createDefaultBorder();
-
-      (settingsTab as any).addBorderPreview(container, config);
-
-      expect(container.createEl).toHaveBeenCalledWith('span', { cls: 'ascii-border-measure-span' });
-    });
-
     test('renders preview after delay', () => {
       const container = mockContainer.createDiv();
       const config = (settingsTab as any).createDefaultBorder();
@@ -410,49 +436,60 @@ describe('SettingsTab', () => {
       consoleSpy.mockRestore();
     });
 
-    test('stores update function on preview element', () => {
+    test('returns update function', () => {
       const container = mockContainer.createDiv();
       const config = (settingsTab as any).createDefaultBorder();
 
-      (settingsTab as any).addBorderPreview(container, config);
+      const updateFn = (settingsTab as any).addBorderPreview(container, config);
 
-      expect(mockPreview._updatePreview).toBeInstanceOf(Function);
+      expect(updateFn).toBeInstanceOf(Function);
     });
   });
 
-  describe('updateBorderPreview', () => {
-    test('calls stored update function', () => {
-      const updateFn = jest.fn();
-      mockPreview._updatePreview = updateFn;
+  describe('addBorderHeader', () => {
+    test('creates copy button with onClick handler', async () => {
+      const mockWriteText = jest.fn(() => Promise.resolve());
+      Object.defineProperty(global.navigator, 'clipboard', {
+        value: {
+          writeText: mockWriteText,
+        },
+        writable: true,
+        configurable: true,
+      });
 
-      const container = mockContainer.createDiv();
-      (settingsTab as any).updateBorderPreview(container);
-
-      expect(updateFn).toHaveBeenCalled();
-    });
-
-    test('handles missing preview element', () => {
-      const container = {
-        querySelector: jest.fn(() => null),
+      let clickHandler: any;
+      let buttonObj: any;
+      const mockSetting: any = {
+        setName: jest.fn().mockReturnThis(),
+        setHeading: jest.fn().mockReturnThis(),
+        addButton: jest.fn((cb: any) => {
+          buttonObj = {
+            setButtonText: jest.fn().mockReturnThis(),
+            setCta: jest.fn().mockReturnThis(),
+            setTooltip: jest.fn().mockReturnThis(),
+            onClick: jest.fn((handler: any) => {
+              clickHandler = handler;
+              return buttonObj;
+            }),
+          };
+          cb(buttonObj);
+          return mockSetting;
+        }),
       };
 
-      expect(() => {
-        (settingsTab as any).updateBorderPreview(container);
-      }).not.toThrow();
-    });
+      const SettingSpy = jest
+        .spyOn(require('obsidian'), 'Setting')
+        .mockImplementation(() => mockSetting);
 
-    test('handles preview without update function', () => {
-      const previewWithoutUpdate = {
-        _updatePreview: undefined,
-      };
+      (settingsTab as any).addBorderHeader(mockContainer, 'test');
 
-      const container = {
-        querySelector: jest.fn(() => previewWithoutUpdate),
-      };
+      // Trigger the click handler
+      await clickHandler();
 
-      expect(() => {
-        (settingsTab as any).updateBorderPreview(container);
-      }).not.toThrow();
+      expect(mockWriteText).toHaveBeenCalledWith('```border-test\n\n```');
+      expect(buttonObj.setButtonText).toHaveBeenCalledWith('Copied!');
+
+      SettingSpy.mockRestore();
     });
   });
 
@@ -464,7 +501,8 @@ describe('SettingsTab', () => {
       expect(mockContainer.createDiv).toHaveBeenCalledWith({ cls: 'border-setting-container' });
     });
 
-    test('adds preview, name, and style settings', () => {
+    test('adds header, preview, name, and style settings', () => {
+      const headerSpy = jest.spyOn(settingsTab as any, 'addBorderHeader');
       const previewSpy = jest.spyOn(settingsTab as any, 'addBorderPreview');
       const nameSpy = jest.spyOn(settingsTab as any, 'addBorderName');
       const styleSpy = jest.spyOn(settingsTab as any, 'addBorderStyleSettings');
@@ -472,6 +510,7 @@ describe('SettingsTab', () => {
       const config = (settingsTab as any).createDefaultBorder();
       (settingsTab as any).renderBorderSettings(mockContainer, 'test', config);
 
+      expect(headerSpy).toHaveBeenCalled();
       expect(previewSpy).toHaveBeenCalled();
       expect(nameSpy).toHaveBeenCalled();
       expect(styleSpy).toHaveBeenCalled();
@@ -480,20 +519,20 @@ describe('SettingsTab', () => {
 
   describe('addBorderStyleSettings', () => {
     test('creates settings for all border parts', () => {
-      const saveSpy = jest.spyOn(settingsTab as any, 'save');
       const config = (settingsTab as any).createDefaultBorder();
       const container = mockContainer.createDiv();
+      const updatePreview = jest.fn();
 
-      (settingsTab as any).addBorderStyleSettings(container, 'test', config);
+      (settingsTab as any).addBorderStyleSettings(container, 'test', config, updatePreview);
 
       // Check that method completes without error
       expect(config).toBeDefined();
       expect(config.style).toBeDefined();
     });
 
-    test('saves with debounce when border style changes', () => {
+    test('calls updatePreview and saves when border style changes', () => {
       const saveSpy = jest.spyOn(settingsTab as any, 'save').mockResolvedValue(undefined);
-      const updateSpy = jest.spyOn(settingsTab as any, 'updateBorderPreview');
+      const updatePreview = jest.fn();
 
       const config = (settingsTab as any).createDefaultBorder();
       const container = mockContainer.createDiv();
@@ -501,14 +540,14 @@ describe('SettingsTab', () => {
       // Manually trigger the update callback
       const update = (part: string, value: string) => {
         (config.style as any)[part] = value;
-        (settingsTab as any).updateBorderPreview(container);
+        updatePreview();
         (settingsTab as any).save({ debounceKey: `test-${part}` });
       };
 
       update('top', '~');
 
       expect(config.style.top).toBe('~');
-      expect(updateSpy).toHaveBeenCalled();
+      expect(updatePreview).toHaveBeenCalled();
       expect(saveSpy).toHaveBeenCalledWith({ debounceKey: 'test-top' });
     });
 
@@ -548,8 +587,9 @@ describe('SettingsTab', () => {
       const deleteSpy = jest.spyOn(settingsTab as any, 'deleteBorder');
       const config = (settingsTab as any).createDefaultBorder();
       const container = mockContainer.createDiv();
+      const updatePreview = jest.fn();
 
-      (settingsTab as any).addBorderStyleSettings(container, 'test-border', config);
+      (settingsTab as any).addBorderStyleSettings(container, 'test-border', config, updatePreview);
 
       // Manually call deleteBorder as if button was clicked
       (settingsTab as any).deleteBorder('test-border');
@@ -559,37 +599,106 @@ describe('SettingsTab', () => {
   });
 
   describe('addNewBorderButton', () => {
-    test('calls addBorder when button clicked', () => {
-      const addBorderSpy = jest.spyOn(settingsTab as any, 'addBorder');
+    test('creates button with onClick handler', async () => {
+      const addBorderSpy = jest.spyOn(settingsTab as any, 'addBorder').mockResolvedValue(undefined);
+
+      let clickHandler: any;
+      const mockSetting: any = {
+        setClass: jest.fn().mockReturnThis(),
+        addButton: jest.fn((cb: any) => {
+          const btn: any = {
+            setButtonText: jest.fn().mockReturnThis(),
+            setCta: jest.fn().mockReturnThis(),
+            onClick: jest.fn((handler: any) => {
+              clickHandler = handler;
+              return btn;
+            }),
+          };
+          cb(btn);
+          return mockSetting;
+        }),
+      };
+
+      const SettingSpy = jest
+        .spyOn(require('obsidian'), 'Setting')
+        .mockImplementation(() => mockSetting);
+
       (settingsTab as any).addNewBorderButton(mockContainer);
-      expect(addBorderSpy).toBeDefined();
+
+      // Trigger the click handler
+      await clickHandler();
+
+      expect(addBorderSpy).toHaveBeenCalled();
+
+      SettingSpy.mockRestore();
     });
   });
 
   describe('addBorderName', () => {
-    test('renames border on blur', async () => {
+    test('creates text input with blur handler', async () => {
       const renameSpy = jest.spyOn(settingsTab as any, 'renameBorder').mockResolvedValue(undefined);
-      const config = (settingsTab as any).createDefaultBorder();
-      mockPlugin.settings.borders['test'] = config;
 
-      (settingsTab as any).addBorderName(mockContainer, 'test');
+      let blurHandler: any;
+      const mockSetting: any = {
+        setName: jest.fn().mockReturnThis(),
+        setDesc: jest.fn().mockReturnThis(),
+        addText: jest.fn((cb: any) => {
+          const text = {
+            setValue: jest.fn().mockReturnThis(),
+            getValue: jest.fn(() => 'new-name'),
+            inputEl: {
+              addEventListener: jest.fn((event: string, handler: any) => {
+                if (event === 'blur') blurHandler = handler;
+              }),
+            },
+          };
+          cb(text);
+          return mockSetting;
+        }),
+      };
 
-      expect(renameSpy).toBeDefined();
+      const SettingSpy = jest
+        .spyOn(require('obsidian'), 'Setting')
+        .mockImplementation(() => mockSetting);
+
+      (settingsTab as any).addBorderName(mockContainer, 'old-name');
+
+      // Trigger blur
+      blurHandler();
+
+      expect(renameSpy).toHaveBeenCalledWith('old-name', 'new-name');
+
+      SettingSpy.mockRestore();
     });
   });
 
   describe('integration - UI callbacks', () => {
     test('width calculator callback in addBorderPreview', () => {
       const config = (settingsTab as any).createDefaultBorder();
-      const container = mockContainer.createDiv();
       const mockMeasureSpan = {
         textContent: '',
         getBoundingClientRect: jest.fn(() => ({ width: 50 })),
       };
-      container.createEl = jest.fn((tag: string) => {
-        if (tag === 'span') return mockMeasureSpan;
-        return mockPreview;
-      });
+
+      const mockPre = {
+        textContent: '',
+        getBoundingClientRect: jest.fn(() => ({ width: 100 })),
+        appendChild: jest.fn(),
+        createEl: jest.fn((tag: string) => {
+          if (tag === 'span') return mockMeasureSpan;
+          return {
+            textContent: '',
+            getBoundingClientRect: jest.fn(() => ({ width: 50 })),
+          };
+        }),
+      };
+
+      const container = {
+        createEl: jest.fn((tag: string) => {
+          if (tag === 'pre') return mockPre;
+          return mockMeasureSpan;
+        }),
+      };
 
       (settingsTab as any).addBorderPreview(container, config);
       jest.advanceTimersByTime(1);
@@ -611,34 +720,32 @@ describe('SettingsTab', () => {
 
     test('update function modifies border style', () => {
       const config = (settingsTab as any).createDefaultBorder();
-      const container = mockContainer.createDiv();
+      const updatePreview = jest.fn();
 
       // Create the update function inline like it exists in the code
       const border = config.style;
       const update = (part: keyof typeof border, value: string) => {
         border[part] = value;
-        (settingsTab as any).updateBorderPreview(container);
+        updatePreview();
         (settingsTab as any).save({ debounceKey: `test-${String(part)}` });
       };
 
       update('top', '~');
       expect(border.top).toBe('~');
+      expect(updatePreview).toHaveBeenCalled();
     });
 
     test('centerText toggle updates config', async () => {
       const config = (settingsTab as any).createDefaultBorder();
-      const container = mockContainer.createDiv();
-
-      // Simulate the toggle onChange handler
-      const updateSpy = jest.spyOn(settingsTab as any, 'updateBorderPreview');
+      const updatePreview = jest.fn();
       const saveSpy = jest.spyOn(settingsTab as any, 'save').mockResolvedValue(undefined);
 
       config.centerText = true;
-      (settingsTab as any).updateBorderPreview(container);
+      updatePreview();
       await (settingsTab as any).save();
 
       expect(config.centerText).toBe(true);
-      expect(updateSpy).toHaveBeenCalled();
+      expect(updatePreview).toHaveBeenCalled();
       expect(saveSpy).toHaveBeenCalled();
     });
 

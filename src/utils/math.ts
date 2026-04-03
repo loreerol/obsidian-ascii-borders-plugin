@@ -25,20 +25,49 @@ export function calculateReadableWidth(
 }
 
 export function wrapLine(line: string, maxWidth: number): string[] {
-  // Use Array.from to properly handle surrogate pairs (e.g., Egyptian hieroglyphs)
-  const chars = Array.from(line);
-
-  if (chars.length <= maxWidth) {
+  if (line.length <= maxWidth) {
     return [line];
   }
 
   const wrapped: string[] = [];
-  let start = 0;
+  const words = line.split(/(\s+)/); // Split on whitespace, keeping whitespace
+  let currentLine = '';
 
-  while (start < chars.length) {
-    wrapped.push(chars.slice(start, start + maxWidth).join(''));
-    start += maxWidth;
+  for (const word of words) {
+    const testLine = currentLine + word;
+
+    if (testLine.length <= maxWidth) {
+      currentLine = testLine;
+    } else {
+      // Word would exceed maxWidth
+      if (currentLine.length > 0) {
+        wrapped.push(currentLine);
+        currentLine = '';
+      }
+
+      // Handle words longer than maxWidth - break them
+      if (word.length > maxWidth) {
+        const chars = Array.from(word);
+        let start = 0;
+        while (start < chars.length) {
+          const chunk = chars.slice(start, start + maxWidth).join('');
+          if (currentLine.length > 0) {
+            wrapped.push(currentLine);
+            currentLine = chunk;
+          } else {
+            wrapped.push(chunk);
+          }
+          start += maxWidth;
+        }
+      } else {
+        currentLine = word;
+      }
+    }
   }
 
-  return wrapped;
+  if (currentLine.length > 0) {
+    wrapped.push(currentLine);
+  }
+
+  return wrapped.length > 0 ? wrapped : [''];
 }

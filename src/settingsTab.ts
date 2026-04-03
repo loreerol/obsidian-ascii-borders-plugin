@@ -1,13 +1,14 @@
 import { App, Notice, PluginSettingTab, Setting } from 'obsidian';
 import type AsciiBorders from './main';
 import { BorderConfig, BorderStyle } from './utils/types';
-import { createBorder } from './borderProcessor';
+import { createBorder } from './borders/processor';
 import { calculateReadableWidth } from './utils/math';
-import { DEFAULT_BORDER_STYLES, INSTRUCTIONS_BORDER_STYLE } from './utils/defaults';
+import { DEFAULT_BORDER_STYLES } from './utils/defaults';
+import { INSTRUCTIONS_BORDER_STYLE } from './utils/uiConstants';
 
 export class SettingsTab extends PluginSettingTab {
   plugin: AsciiBorders;
-  private debounceTimeouts: Map<string, NodeJS.Timeout>;
+  private debounceTimeouts: Map<string, ReturnType<typeof setTimeout>>;
 
   constructor(app: App, plugin: AsciiBorders) {
     super(app, plugin);
@@ -28,6 +29,12 @@ export class SettingsTab extends PluginSettingTab {
     Object.entries(this.plugin.settings.borders).forEach(([key, config]) => {
       this.renderBorderSettings(containerEl, key, config);
     });
+  }
+
+  hide(): void {
+    // Clean up any pending debounced saves
+    this.debounceTimeouts.forEach((timeout) => clearTimeout(timeout));
+    this.debounceTimeouts.clear();
   }
 
   private async save(opts: { debounceKey?: string } = {}): Promise<void> {
@@ -68,10 +75,11 @@ export class SettingsTab extends PluginSettingTab {
     );
 
     const content = [
+      '',
       'Hit Copy Code Block on any border below, paste into a note,',
       'and type between the fences:',
       '',
-      '  ```border-custom',
+      '  ```border-<name>',
       '  Your text here',
       '  ```',
       '',
@@ -82,6 +90,7 @@ export class SettingsTab extends PluginSettingTab {
       '  Center text - toggles horizontal centering',
       '',
       'Click inside a border in reading view to edit its content.',
+      '',
     ].join('\n');
 
     const render = () => {
@@ -183,11 +192,10 @@ export class SettingsTab extends PluginSettingTab {
           .setButtonText(`Copy Code Block`)
           .setCta()
           .setTooltip('Copy code block to clipboard')
-          .onClick(() => {
-            navigator.clipboard.writeText(`\`\`\`border-${key}\n\n\`\`\``).then(() => {
-              btn.setButtonText('Copied!');
-              setTimeout(() => btn.setButtonText(`Copy Code Block`), 1500);
-            });
+          .onClick(async () => {
+            await navigator.clipboard.writeText(`\`\`\`border-${key}\n\n\`\`\``);
+            btn.setButtonText('Copied!');
+            setTimeout(() => btn.setButtonText(`Copy Code Block`), 1500);
           })
       );
   }

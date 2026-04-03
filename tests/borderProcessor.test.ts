@@ -1,5 +1,5 @@
 import { describe, expect, test } from '@jest/globals';
-import { createBorder } from '../src/borderProcessor';
+import { createBorder } from '../src/borders/processor';
 import { BorderStyle } from '../src/utils/types';
 
 describe('borderProcessor', () => {

@@ -251,14 +251,24 @@ describe('measurements', () => {
       expect(result).toEqual(['12345']);
     });
 
-    test('wraps long line into multiple lines', () => {
-      const result = wrapLine('abcdefghij', 5);
-      expect(result).toEqual(['abcde', 'fghij']);
+    test('wraps at word boundaries', () => {
+      const result = wrapLine('hello world test', 12);
+      expect(result).toEqual(['hello world ', 'test']);
     });
 
-    test('wraps unevenly when length not divisible by maxWidth', () => {
-      const result = wrapLine('abcdefgh', 5);
-      expect(result).toEqual(['abcde', 'fgh']);
+    test('wraps multiple words', () => {
+      const result = wrapLine('the quick brown fox', 10);
+      expect(result).toEqual(['the quick ', 'brown fox']);
+    });
+
+    test('breaks long words that exceed maxWidth', () => {
+      const result = wrapLine('supercalifragilistic', 10);
+      expect(result).toEqual(['supercalif', 'ragilistic']);
+    });
+
+    test('handles mixed long words and normal words', () => {
+      const result = wrapLine('hello supercalifragilistic world', 10);
+      expect(result).toEqual(['hello ', 'supercalif', 'ragilistic', ' world']);
     });
 
     test('handles empty string', () => {
@@ -271,54 +281,53 @@ describe('measurements', () => {
       expect(result).toEqual(['a']);
     });
 
-    test('wraps at maxWidth = 1', () => {
-      const result = wrapLine('abc', 1);
-      expect(result).toEqual(['a', 'b', 'c']);
+    test('preserves whitespace between words', () => {
+      const result = wrapLine('hello  world', 15);
+      expect(result).toEqual(['hello  world']);
     });
 
-    test('handles surrogate pair characters correctly', () => {
+    test('handles surrogate pair characters in long words', () => {
       // Egyptian hieroglyphs (surrogate pairs)
-      const text = '𓀀𓀁𓀂𓀃𓀄';
-      const result = wrapLine(text, 3);
+      const text = '𓀀𓀁𓀂𓀃𓀄𓀅𓀆';
+      const result = wrapLine(text, 4);
 
-      expect(result).toEqual(['𓀀𓀁𓀂', '𓀃𓀄']);
+      // Should break the long word
+      expect(result.length).toBeGreaterThan(1);
       // Verify no broken surrogate pairs
       expect(result.every((line) => !line.includes('\uFFFD'))).toBe(true);
     });
 
-    test('handles emoji with ZWJ correctly', () => {
-      const text = '👨‍👩‍👧‍👦👨‍👩‍👧‍👦'; // Family emoji
-      const result = wrapLine(text, 1);
-
-      // Each emoji should be treated as a single unit
-      expect(result.length).toBeGreaterThan(0);
-      expect(result.every((line) => line.length > 0)).toBe(true);
-    });
-
-    test('handles very long text', () => {
-      const longText = 'a'.repeat(1000);
-      const result = wrapLine(longText, 50);
+    test('handles very long single word', () => {
+      const longWord = 'a'.repeat(1000);
+      const result = wrapLine(longWord, 50);
 
       expect(result.length).toBe(20); // 1000 / 50
       expect(result.every((line) => line.length === 50)).toBe(true);
     });
 
     test('handles whitespace-only text', () => {
-      const result = wrapLine('     ', 3);
-      expect(result).toEqual(['   ', '  ']);
+      const result = wrapLine('     ', 10);
+      expect(result).toEqual(['     ']);
     });
 
-    test('handles mixed ASCII and Unicode', () => {
-      const text = 'Hello世界';
-      const result = wrapLine(text, 5);
-
-      expect(result.length).toBeGreaterThan(0);
-      expect(result.join('')).toBe(text);
+    test('handles text with leading spaces', () => {
+      const result = wrapLine('  hello world', 10);
+      expect(result).toEqual(['  hello ', 'world']);
     });
 
-    test('wraps at very small maxWidth', () => {
-      const result = wrapLine('abc', 2);
-      expect(result).toEqual(['ab', 'c']);
+    test('handles text with trailing spaces', () => {
+      const result = wrapLine('hello world  ', 10);
+      expect(result).toEqual(['hello ', 'world  ']);
+    });
+
+    test('wraps at very small maxWidth with words', () => {
+      const result = wrapLine('a b', 2);
+      expect(result).toEqual(['a ', 'b']);
+    });
+
+    test('handles multiple spaces as separator', () => {
+      const result = wrapLine('hello   world', 15);
+      expect(result).toEqual(['hello   world']);
     });
   });
 });

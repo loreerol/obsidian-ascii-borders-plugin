@@ -16,20 +16,20 @@ export const DEFAULT_BORDER_STYLES: Record<string, BorderStyle> = {
     bottom: '─',
     left: '│',
     right: '│',
-    topLeft: '┌',
-    topRight: '┐',
-    bottomLeft: '└',
-    bottomRight: '┘',
-  },
-  rounded: {
-    top: '─',
-    bottom: '─',
-    left: '│',
-    right: '│',
     topLeft: '╭',
     topRight: '╮',
     bottomLeft: '╰',
     bottomRight: '╯',
+  },
+  pillar: {
+    top: '─',
+    bottom: '─',
+    left: '║',
+    right: '║',
+    topLeft: '╓',
+    topRight: '╖',
+    bottomLeft: '╙',
+    bottomRight: '╜',
   },
   heart: {
     top: '══ஓ๑♡๑ஓ══',
@@ -77,21 +77,10 @@ export const DEFAULT_BORDERS: DefaultBorders = {
   borders: {
     double: { style: DEFAULT_BORDER_STYLES.double, centerText: false },
     single: { style: DEFAULT_BORDER_STYLES.single, centerText: false },
-    rounded: { style: DEFAULT_BORDER_STYLES.rounded, centerText: false },
+    pillar: { style: DEFAULT_BORDER_STYLES.pillar, centerText: false },
     heart: { style: DEFAULT_BORDER_STYLES.heart, centerText: false },
     ocean: { style: DEFAULT_BORDER_STYLES.ocean, centerText: false },
     snail: { style: DEFAULT_BORDER_STYLES.snail, centerText: false },
     frog: { style: DEFAULT_BORDER_STYLES.frog, centerText: false },
   },
-};
-
-export const INSTRUCTIONS_BORDER_STYLE: BorderStyle = {
-  top: '─꧂ 𝔗𝖓𝖘𝖙𝖗𝖚𝖈𝖙𝖎𝖔𝖓𝖘 ꧁─',
-  bottom: '─',
-  left: '║',
-  right: '║',
-  topLeft: '╓',
-  topRight: '╖',
-  bottomLeft: '╙',
-  bottomRight: '╜',
 };
