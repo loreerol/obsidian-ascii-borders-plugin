@@ -72,6 +72,7 @@ export class Setting {
       setButtonText: jest.fn().mockReturnThis(),
       setCta: jest.fn().mockReturnThis(),
       setWarning: jest.fn().mockReturnThis(),
+      setTooltip: jest.fn().mockReturnThis(),
       onClick: jest.fn(function (this: any, handler: any) {
         this._clickHandler = handler;
         return this;

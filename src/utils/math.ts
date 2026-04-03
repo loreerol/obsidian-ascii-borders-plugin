@@ -1,4 +1,4 @@
-import { getMonospaceCharWidth } from 'src/charWidthCache';
+import { getMonospaceCharWidth } from 'src/utils/charWidthCache';
 import { BORDER_OVERHEAD, FALLBACK_WIDTH } from './constants';
 
 // Measure the pixel width of a text string when rendered in monospace font
@@ -12,16 +12,10 @@ export function calculateReadableWidth(
   measureSpan: HTMLSpanElement
 ): number {
   const widthPx = container.getBoundingClientRect().width;
-
-  if (widthPx <= 0) {
-    return FALLBACK_WIDTH - BORDER_OVERHEAD;
-  }
-
   // Measure a single monospace character and cache it
   const charWidth = getMonospaceCharWidth(container, measureSpan);
 
-  if (charWidth <= 0) {
-    console.warn('Character width is zero or negative, using fallback width');
+  if (widthPx <= 0 || charWidth <= 0) {
     return FALLBACK_WIDTH - BORDER_OVERHEAD;
   }
 

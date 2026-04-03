@@ -14,6 +14,6 @@ export interface BorderConfig {
   centerText: boolean;
 }
 
-export interface AsciiBordersSettings {
+export interface DefaultBorders {
   borders: Record<string, BorderConfig>;
 }

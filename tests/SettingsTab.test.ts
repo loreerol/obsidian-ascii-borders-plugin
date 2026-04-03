@@ -1,6 +1,6 @@
 import { describe, expect, test, jest, beforeEach, afterEach } from '@jest/globals';
-import { SettingsTab } from '../src/SettingsTab';
-import { DEFAULT_SETTINGS } from '../src/settings';
+import { SettingsTab } from '../src/settingsTab';
+import { DEFAULT_BORDERS } from '../src/utils/defaults';
 import { BorderConfig } from '../src/utils/types';
 
 // Mock dependencies
@@ -8,7 +8,7 @@ jest.mock('../src/borderProcessor', () => ({
   createBorder: jest.fn(() => 'bordered preview'),
 }));
 
-jest.mock('../src/utils/measurements', () => ({
+jest.mock('../src/utils/math', () => ({
   calculateReadableWidth: jest.fn(() => 100),
 }));
 
@@ -28,6 +28,10 @@ describe('SettingsTab', () => {
     mockPreview = {
       textContent: '',
       getBoundingClientRect: jest.fn(() => ({ width: 100 })),
+      createEl: jest.fn((tag: string) => ({
+        textContent: '',
+        getBoundingClientRect: jest.fn(() => ({ width: 50 })),
+      })),
     };
 
     mockContainer = {
@@ -62,7 +66,7 @@ describe('SettingsTab', () => {
     };
 
     mockPlugin = {
-      settings: JSON.parse(JSON.stringify(DEFAULT_SETTINGS)),
+      settings: JSON.parse(JSON.stringify(DEFAULT_BORDERS)),
       saveSettings: jest.fn(() => Promise.resolve()) as any,
     };
 
@@ -110,7 +114,7 @@ describe('SettingsTab', () => {
       const renderSpy = jest.spyOn(settingsTab as any, 'renderBorderSettings');
       settingsTab.display();
 
-      const borderCount = Object.keys(DEFAULT_SETTINGS.borders).length;
+      const borderCount = Object.keys(DEFAULT_BORDERS.borders).length;
       expect(renderSpy).toHaveBeenCalledTimes(borderCount);
     });
   });
@@ -511,12 +515,23 @@ describe('SettingsTab', () => {
     test('limits side chars to single character', () => {
       const config = (settingsTab as any).createDefaultBorder();
 
-      // Simulate the slice(0, 1) behavior
+      // Simulate the firstChar() behavior
       const value = '|||';
-      config.style.left = value.slice(0, 1);
+      config.style.left = [...value][0];
 
       expect(config.style.left).toBe('|');
       expect(config.style.left.length).toBe(1);
+    });
+
+    test('handles surrogate pair characters in side borders', () => {
+      const config = (settingsTab as any).createDefaultBorder();
+
+      // Egyptian hieroglyph (surrogate pair)
+      const value = '𓋼';
+      config.style.left = [...value][0];
+
+      expect(config.style.left).toBe('𓋼');
+      expect(config.style.left).not.toBe('�');
     });
 
     test('updates centerText config', async () => {
@@ -632,11 +647,11 @@ describe('SettingsTab', () => {
 
       // Simulate onChange for side characters
       const value = '|||';
-      config.style.left = value.slice(0, 1);
+      config.style.left = [...value][0];
       expect(config.style.left).toBe('|');
 
       const value2 = 'abc';
-      config.style.right = value2.slice(0, 1);
+      config.style.right = [...value2][0];
       expect(config.style.right).toBe('a');
     });
   });

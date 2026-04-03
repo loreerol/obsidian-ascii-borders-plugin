@@ -1,5 +1,5 @@
 import { describe, expect, test, beforeEach, afterEach } from '@jest/globals';
-import { getMonospaceCharWidth } from '../src/charWidthCache';
+import { getMonospaceCharWidth } from '../src/utils/charWidthCache';
 
 describe('charWidthCache', () => {
   let originalGetComputedStyle: typeof window.getComputedStyle;

@@ -1,6 +1,6 @@
 import { BorderConfig } from './utils/types';
 import { createBorder } from './borderProcessor';
-import { calculateReadableWidth } from './utils/measurements';
+import { calculateReadableWidth } from './utils/math';
 import { App, MarkdownPostProcessorContext, MarkdownView, MarkdownRenderChild } from 'obsidian';
 
 export function renderBorder(

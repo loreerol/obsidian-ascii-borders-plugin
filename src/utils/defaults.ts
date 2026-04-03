@@ -1,0 +1,97 @@
+import { BorderStyle, DefaultBorders } from './types';
+
+export const DEFAULT_BORDER_STYLES: Record<string, BorderStyle> = {
+  double: {
+    top: '═',
+    bottom: '═',
+    left: '║',
+    right: '║',
+    topLeft: '╔',
+    topRight: '╗',
+    bottomLeft: '╚',
+    bottomRight: '╝',
+  },
+  single: {
+    top: '─',
+    bottom: '─',
+    left: '│',
+    right: '│',
+    topLeft: '┌',
+    topRight: '┐',
+    bottomLeft: '└',
+    bottomRight: '┘',
+  },
+  rounded: {
+    top: '─',
+    bottom: '─',
+    left: '│',
+    right: '│',
+    topLeft: '╭',
+    topRight: '╮',
+    bottomLeft: '╰',
+    bottomRight: '╯',
+  },
+  heart: {
+    top: '══ஓ๑♡๑ஓ══',
+    bottom: '══ஓ๑♡๑ஓ══',
+    left: '║',
+    right: '║',
+    topLeft: '╔',
+    topRight: '╗',
+    bottomLeft: '╚',
+    bottomRight: '╝',
+  },
+  ocean: {
+    top: '﹏.𓆝⋆.𓆟⊹ ࣪𓆝⋆.𓆞.﹏',
+    bottom: '𓂃𓇼 ⋆.˚ 𓆉 𓆝 𓆡⋆.˚ 𓇼𓂃',
+    left: '°',
+    right: '°',
+    topLeft: ' ',
+    topRight: ' ',
+    bottomLeft: ' ',
+    bottomRight: ' ',
+  },
+  snail: {
+    top: '.‧⋆.˚ ☾.𖥔 ݁ ˖⭒.˚‧.',
+    bottom: '.‧↟. ⚘‧↟. ๑ï ⚘‧.↟⚘‧.',
+    left: '.',
+    right: '.',
+    topLeft: '.',
+    topRight: '.',
+    bottomLeft: '.',
+    bottomRight: '.',
+  },
+  frog: {
+    top: '. 𖡼𖤣𖥧𖡼𖤣𖥧𓍊 .',
+    bottom: ' .𓋼𓍊 𓆏 𓍊𓋼𓍊. ',
+    left: '𓋼',
+    right: '𓋼',
+    topLeft: ' ',
+    topRight: ' ',
+    bottomLeft: '𓋼',
+    bottomRight: '𓋼',
+  },
+};
+
+export const DEFAULT_BORDERS: DefaultBorders = {
+  borders: {
+    double: { style: DEFAULT_BORDER_STYLES.double, centerText: false },
+    single: { style: DEFAULT_BORDER_STYLES.single, centerText: false },
+    rounded: { style: DEFAULT_BORDER_STYLES.rounded, centerText: false },
+    heart: { style: DEFAULT_BORDER_STYLES.heart, centerText: false },
+    ocean: { style: DEFAULT_BORDER_STYLES.ocean, centerText: false },
+    snail: { style: DEFAULT_BORDER_STYLES.snail, centerText: false },
+    frog: { style: DEFAULT_BORDER_STYLES.frog, centerText: false },
+  },
+};
+
+export const INSTRUCTIONS_BORDER_STYLE: BorderStyle = {
+  top: '─꧂ 𝔗𝖓𝖘𝖙𝖗𝖚𝖈𝖙𝖎𝖔𝖓𝖘 ꧁─',
+  bottom: '─',
+  left: '║',
+  right: '║',
+  topLeft: '╓',
+  topRight: '╖',
+  bottomLeft: '╙',
+  bottomRight: '╜',
+};

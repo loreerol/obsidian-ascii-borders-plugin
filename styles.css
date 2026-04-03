@@ -95,3 +95,11 @@ div[class*='block-language-border-'] pre {
   border-radius: 4px;
   border: 1px solid var(--background-modifier-border);
 }
+
+.add-border-button {
+  background-color: unset;
+}
+
+/* .add-border-button {
+  width: 3em;
+} */

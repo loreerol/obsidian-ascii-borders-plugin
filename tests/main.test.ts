@@ -1,6 +1,6 @@
 import { describe, expect, test, jest, beforeEach } from '@jest/globals';
 import AsciiBorders from '../src/main';
-import { DEFAULT_SETTINGS } from '../src/settings';
+import { DEFAULT_BORDERS } from '../src/utils/defaults';
 
 jest.mock('../src/renderer', () => ({
   renderBorder: jest.fn(),
@@ -41,7 +41,7 @@ describe('AsciiBorders Plugin', () => {
       plugin.loadData = jest.fn(() => Promise.resolve({})) as any;
       await plugin.onload();
 
-      const borderNames = Object.keys(DEFAULT_SETTINGS.borders);
+      const borderNames = Object.keys(DEFAULT_BORDERS.borders);
       expect(plugin.registerMarkdownCodeBlockProcessor).toHaveBeenCalledTimes(borderNames.length);
 
       borderNames.forEach((name) => {
@@ -111,14 +111,14 @@ describe('AsciiBorders Plugin', () => {
       plugin.loadData = jest.fn(() => Promise.resolve(null)) as any;
       await plugin.loadSettings();
 
-      expect(plugin.settings).toEqual(DEFAULT_SETTINGS);
+      expect(plugin.settings).toEqual(DEFAULT_BORDERS);
     });
 
     test('uses defaults when loadData returns undefined', async () => {
       plugin.loadData = jest.fn(() => Promise.resolve(undefined)) as any;
       await plugin.loadSettings();
 
-      expect(plugin.settings).toEqual(DEFAULT_SETTINGS);
+      expect(plugin.settings).toEqual(DEFAULT_BORDERS);
     });
 
     test('uses defaults when loadData throws error', async () => {
@@ -127,7 +127,7 @@ describe('AsciiBorders Plugin', () => {
 
       await plugin.loadSettings();
 
-      expect(plugin.settings).toEqual(DEFAULT_SETTINGS);
+      expect(plugin.settings).toEqual(DEFAULT_BORDERS);
       expect(consoleWarnSpy).toHaveBeenCalledWith(
         'Failed to load settings, using defaults:',
         expect.any(Error)
@@ -138,17 +138,64 @@ describe('AsciiBorders Plugin', () => {
   });
 
   describe('saveSettings', () => {
+    beforeEach(() => {
+      plugin.settings = JSON.parse(JSON.stringify(DEFAULT_BORDERS));
+    });
+
     test('saves settings data', async () => {
-      plugin.settings = DEFAULT_SETTINGS;
       plugin.saveData = jest.fn(() => Promise.resolve()) as any;
 
       await plugin.saveSettings();
 
-      expect(plugin.saveData).toHaveBeenCalledWith(DEFAULT_SETTINGS);
+      expect(plugin.saveData).toHaveBeenCalledWith(plugin.settings);
+    });
+
+    test('registers new border processors', async () => {
+      plugin.loadData = jest.fn(() => Promise.resolve({})) as any;
+      await plugin.onload();
+
+      const initialCallCount = (plugin.registerMarkdownCodeBlockProcessor as jest.Mock).mock.calls
+        .length;
+
+      // Add a new border
+      plugin.settings.borders['newborder'] = {
+        style: {
+          top: '─',
+          bottom: '─',
+          left: '│',
+          right: '│',
+          topLeft: '┌',
+          topRight: '┐',
+          bottomLeft: '└',
+          bottomRight: '┘',
+        },
+        centerText: false,
+      };
+
+      await plugin.saveSettings();
+
+      expect(plugin.registerMarkdownCodeBlockProcessor).toHaveBeenCalledTimes(initialCallCount + 1);
+      expect(plugin.registerMarkdownCodeBlockProcessor).toHaveBeenCalledWith(
+        'border-newborder',
+        expect.any(Function)
+      );
+    });
+
+    test('does not re-register existing borders', async () => {
+      plugin.loadData = jest.fn(() => Promise.resolve({})) as any;
+      await plugin.onload();
+
+      const callCountAfterLoad = (plugin.registerMarkdownCodeBlockProcessor as jest.Mock).mock.calls
+        .length;
+
+      // Save without adding new borders
+      await plugin.saveSettings();
+
+      // Should not register again
+      expect(plugin.registerMarkdownCodeBlockProcessor).toHaveBeenCalledTimes(callCountAfterLoad);
     });
 
     test('triggers markdown preview refresh', async () => {
-      plugin.settings = DEFAULT_SETTINGS;
       plugin.saveData = jest.fn(() => Promise.resolve()) as any;
 
       await plugin.saveSettings();
@@ -159,7 +206,6 @@ describe('AsciiBorders Plugin', () => {
     test('logs error and rethrows when saveData fails', async () => {
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
       const error = new Error('Save failed');
-      plugin.settings = DEFAULT_SETTINGS;
       plugin.saveData = jest.fn(() => Promise.reject(error)) as any;
 
       await expect(plugin.saveSettings()).rejects.toThrow('Save failed');
@@ -167,6 +213,34 @@ describe('AsciiBorders Plugin', () => {
       expect(consoleErrorSpy).toHaveBeenCalledWith('Failed to save settings:', error);
 
       consoleErrorSpy.mockRestore();
+    });
+  });
+
+  describe('registerBorderProcessors', () => {
+    test('tracks registered borders', async () => {
+      plugin.loadData = jest.fn(() => Promise.resolve({})) as any;
+      await plugin.onload();
+
+      const registeredBorders = (plugin as any).registeredBorders;
+      const borderNames = Object.keys(DEFAULT_BORDERS.borders);
+
+      borderNames.forEach((name) => {
+        expect(registeredBorders.has(name)).toBe(true);
+      });
+    });
+
+    test('only registers each border once', async () => {
+      plugin.loadData = jest.fn(() => Promise.resolve({})) as any;
+      await plugin.onload();
+
+      const initialCount = (plugin.registerMarkdownCodeBlockProcessor as jest.Mock).mock.calls
+        .length;
+
+      // Call registerBorderProcessors again
+      (plugin as any).registerBorderProcessors();
+
+      // Should not register again
+      expect(plugin.registerMarkdownCodeBlockProcessor).toHaveBeenCalledTimes(initialCount);
     });
   });
 

@@ -7,12 +7,11 @@ jest.mock('../src/borderProcessor', () => ({
   createBorder: jest.fn((source: string) => `bordered: ${source}`),
 }));
 
-jest.mock('../src/utils/measurements', () => ({
+jest.mock('../src/utils/math', () => ({
   calculateReadableWidth: jest.fn(() => 100),
 }));
 
 const { createBorder } = require('../src/borderProcessor');
-const { calculateReadableWidth } = require('../src/utils/measurements');
 
 describe('renderBorder', () => {
   let mockEl: any;

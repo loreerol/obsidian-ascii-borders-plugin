@@ -1,5 +1,5 @@
 import { describe, expect, test, beforeEach } from '@jest/globals';
-import { measureText, calculateReadableWidth, wrapLine } from '../../src/utils/measurements';
+import { measureText, calculateReadableWidth, wrapLine } from '../../src/utils/math';
 import { BORDER_OVERHEAD, FALLBACK_WIDTH } from '../../src/utils/constants';
 
 describe('measurements', () => {
